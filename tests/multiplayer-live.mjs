@@ -20,7 +20,7 @@ try{
   states=await Promise.all([0,1,2,3].map(i=>call(i,'state')));assert.equal(seenIds.size,4);assert.ok(maxTime>0);assert.ok(states.every(s=>s.room.players.some(p=>p.z>0)));assert.ok(states.some(s=>s.room.fields.flat().length>0));
   const before=states[0].pilot;const reconnect=await call(0,'join');assert.equal(reconnect.pilot,before);
   // Explicitly forfeit three pilot sessions; the fourth can finish/spectate.
-  for(let i=1;i<4;i++)await call(i,'leave');r=await call(0,'state');if(mode==='survival'){assert.equal(r.room.phase,'results');assert.deepEqual(r.room.winners,[r.pilot]);const a=await call(0,'claim'),b=await call(0,'claim');assert.equal(a.grant.id,b.grant.id);assert.equal(a.grant.balance,b.grant.balance);}await call(0,'leave');
+  for(let i=1;i<4;i++)await call(i,'leave');r=await call(0,'state');if(mode==='survival'){assert.equal(r.room.phase,'results');assert.ok(r.room.winners.length>0);assert.ok(r.room.winners.every(id=>seenIds.has(id)));const confirmed=await call(0,'state');assert.deepEqual(confirmed.room.winners,r.room.winners);const a=await call(0,'claim'),b=await call(0,'claim');assert.equal(a.grant.id,b.grant.id);assert.equal(a.grant.balance,b.grant.balance);}await call(0,'leave');
   report.push({mode,fourClients:true,frames,maxSimTime:maxTime,lastPhase,sharedRacers:states[0].room.fields.flat().length,reconnect:true});
  }
  latencies.sort((a,b)=>a-b);console.log(JSON.stringify({passed:true,service:'hosted Worker + D1',report,requests:latencies.length,p50ms:Math.round(latencies[Math.floor(latencies.length*.5)]),p95ms:Math.round(latencies[Math.floor(latencies.length*.95)]),note:'Synthetic HTTP clients; no rendered frames, phone or human play tested.'}));

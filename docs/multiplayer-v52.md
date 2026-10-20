@@ -29,6 +29,12 @@ Changes:
 - Authoritative catch-up can process up to two seconds of ticks per exchange,
   with a 120 ms soft CPU budget after the original 25-tick allowance. Collision
   substeps and shared hazard state remain unchanged; no immunity was introduced.
+- Input publication, lease acquisition and shared snapshot reads now use one
+  transactional D1 batch. Simulation commit and lease release use a second batch.
+  Successful updates return the committed snapshot without a redundant read.
+  Compare-and-swap conflicts still reload current state, and exceptional paths
+  release their lease. Tests verify one batch for a non-simulating exchange and
+  two for the simulator, in addition to the membership lookup.
 
 Verification is reported separately from human play. The deterministic jitter
 fixture uses 90/240/130/400 ms delivery delays and reordered arrivals. It reproduces

@@ -26,7 +26,7 @@ try{
  await import(temp.href+'?'+Date.now());const g=globalThis.testMP;const records=JSON.stringify(g.save.worldBests),credits=g.save.credits;g.mp.entry();node('mpName').value='Host';node('mpMode').value='collector';await node('mpCreate').onclick();assert.ok(g.mp.room.code);const code=g.mp.room.code;
  const sessions=Array.from({length:3},(_,i)=>String(i+1).repeat(64));
  async function other(i,action,more={}){return (await multiplayer(new Request('https://stargaze.test/api/multiplayer',{method:'POST',body:JSON.stringify({session:sessions[i],code,action,...more})}),db)).json();}
- for(let i=0;i<3;i++)await other(i,'join',{name:'Other '+i});await wait(800);assert.equal(g.mp.room.players.length,4);
+ for(let i=0;i<3;i++)await other(i,'join',{name:'Other '+i});for(let until=Date.now()+5000;g.mp.room.players.length<4&&Date.now()<until;)await wait(100);assert.equal(g.mp.room.players.length,4);
  for(let i=0;i<3;i++)await other(i,'ready',{ready:true});await node('mpReady').onclick();assert.equal(g.mp.room.phase,'countdown');assert.equal(g.state,'playing');
  let row,room;await wait(jitter?6200:5400);g.animate(16);g.animate(32);assert.equal(g.mp.room.phase,'playing');assert.equal(g.mp.active,true);assert.ok(g.scene.children.filter(o=>o.type==='Group').length>=5,'remote models present');assert.ok(g.run.time>=0);assert.equal(g.themes.mode,g.mp.room.world);
  const me=g.mp.room.players.find(p=>p.id===globalThis.__mpPilotId);me.respawnAt=g.mp.room.time+1;me.z=1900;g.animate(48);assert.ok(g.asteroids.some(a=>a.z>1500&&a.z<2400),'forward spectate/course jump loads nearby terrain');me.z=0;g.animate(64);assert.ok(g.asteroids.some(a=>a.z<400),'checkpoint rewind regenerates discarded terrain');
