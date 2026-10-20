@@ -20,10 +20,14 @@ try{
  await new Promise(r=>setTimeout(r,60));sqlite.prepare('UPDATE multiplayer_rooms SET lease=?,lease_until=? WHERE code=?').run('other-worker',Date.now()+10000,code);
  const queued=await Promise.all([0,1,2,3].map(i=>call(i,'input',{code,seq:5,x:.2,y:0,evadeSeq:0})));assert.ok(queued.every(r=>r.status===200));assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM multiplayer_inputs WHERE code=?').get(code).n,4);
  sqlite.prepare('UPDATE multiplayer_rooms SET lease=NULL,lease_until=0 WHERE code=?').run(code);await call(0,'state',{code});const applied=JSON.parse(sqlite.prepare('SELECT data FROM multiplayer_rooms WHERE code=?').get(code).data);assert.ok(applied.players.every(p=>p.seq===5));
+ // Mobile packets can arrive together despite having been sent apart. Coalesce
+ // the burst without 429/reconnect loops; later input still gets acknowledged.
+ const burst=await Promise.all(Array.from({length:6},(_,k)=>call(0,'input',{code,seq:6+k,x:.3,y:0,evadeSeq:0})));assert.ok(burst.every(r=>r.status===200));
+ await new Promise(r=>setTimeout(r,60));const newest=await call(0,'input',{code,seq:20,x:-.3,y:0,evadeSeq:0});assert.equal(newest.status,200);assert.equal(newest.room.players.find(p=>p.id===before).seq,20);assert.ok(newest.room.revision>0);
  // Transactional result grants remain idempotent under parallel retries.
  let row=sqlite.prepare('SELECT data FROM multiplayer_rooms WHERE code=?').get(code),r=JSON.parse(row.data);r.phase='results';for(const p of r.players)p.reward=25;sqlite.prepare('UPDATE multiplayer_rooms SET data=? WHERE code=?').run(JSON.stringify(r),code);
  const grants=await Promise.all(Array.from({length:4},()=>call(0,'claim',{code})));assert.ok(grants.every(g=>g.status===200));assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM multiplayer_grants').get().n,1);assert.ok(grants.every(g=>g.grant.balance===25));
  // Malformed steering, wrong sessions, unauthorized actions, duplicate requests.
- await new Promise(r=>setTimeout(r,60));assert.equal((await call(0,'input',{code,seq:6,x:9,y:0})).status,400);assert.equal((await call(0,'state',{code:'XXXXXX'})).status,404);
+ await new Promise(r=>setTimeout(r,60));assert.equal((await call(0,'input',{code,seq:21,x:9,y:0})).status,400);assert.equal((await call(0,'state',{code:'XXXXXX'})).status,404);
  console.log('PASS: four independent HTTP clients, concurrent joins and ready, fifth-seat rejection, membership and host authorization, reconnect identity, atomic CAS updates, idempotent persistent reward grants. SQLite adapter; not hosted D1.');
 }finally{server.close();sqlite.close();}

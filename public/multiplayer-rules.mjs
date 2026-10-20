@@ -1,6 +1,6 @@
 import {difficulty,LIMITS} from './mechanics.mjs';
 import {flightDistance,ringOffset} from './progression.mjs';
-export const MP_RULES=Object.freeze({version:1,capacity:4,countdown:5,collectorSeconds:120,raceSeconds:120,raceLimit:240,finishTimeout:30,respawnSeconds:2,respawnGrace:1.25,checkpoint:950,disconnectSeconds:12,inputTimeout:.30,boostSeconds:3,boostFactor:1.18,powerCooldown:8,shieldSeconds:6,tick:.02});
+export const MP_RULES=Object.freeze({version:2,capacity:4,countdown:5,collectorSeconds:120,raceSeconds:120,raceLimit:240,finishTimeout:30,respawnSeconds:2,respawnGrace:1.25,checkpoint:950,disconnectSeconds:12,inputTimeout:1.25,boostSeconds:3,boostFactor:1.18,powerCooldown:8,shieldSeconds:6,tick:.02});
 export const MP_MODES={race:'Race to the Finish',collector:'Timed Ring Collector',survival:'Last Pilot Standing'};
 export const SCORE_VALUES=[1,3,5];
 export function raceLength(difficultyId,world){return Math.ceil(flightDistance(MP_RULES.raceSeconds,difficultyId,world)/190)*190;}

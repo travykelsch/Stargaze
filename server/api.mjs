@@ -8,7 +8,7 @@ const random=n=>Array.from(crypto.getRandomValues(new Uint8Array(n))).map(x=>x.t
 async function saveStats(db,room){if(room.phase==='results'&&!room.statsRecorded){await recordMatch(db,room);room.statsRecorded=true;}}
 async function exchange(db,room,p,b,now){
  const key=room.code+':'+room.round+':'+p.id,packet=b.action==='input';
- if(packet){if(b.round!==undefined&&b.round!==room.round)fail('Round changed; synchronizing',409);applyAction({...room},structuredClone(p),b,now);const written=await db.prepare('INSERT INTO multiplayer_inputs(key,code,pilot,seen,input_at,seq,data) VALUES(?,?,?,?,?,?,?) ON CONFLICT(key) DO UPDATE SET seen=excluded.seen, input_at=CASE WHEN excluded.seq>seq THEN excluded.input_at ELSE input_at END, seq=MAX(seq,excluded.seq), data=CASE WHEN excluded.seq>seq THEN excluded.data ELSE data END WHERE excluded.seen-seen>=45').bind(key,room.code,p.id,now,now,b.seq,JSON.stringify({action:'input',seq:b.seq,x:b.x,y:b.y,evadeSeq:b.evadeSeq,evade:b.evade})).run();if(!written.meta.changes)fail('Inputs arriving too quickly',429);
+ if(packet){if(b.round!==undefined&&b.round!==room.round)fail('Round changed; synchronizing',409);applyAction({...room},structuredClone(p),b,now);await db.prepare('INSERT INTO multiplayer_inputs(key,code,pilot,seen,input_at,seq,data) VALUES(?,?,?,?,?,?,?) ON CONFLICT(key) DO UPDATE SET seen=excluded.seen, input_at=CASE WHEN excluded.seq>seq THEN excluded.input_at ELSE input_at END, seq=MAX(seq,excluded.seq), data=CASE WHEN excluded.seq>seq THEN excluded.data ELSE data END WHERE excluded.seen-seen>=45').bind(key,room.code,p.id,now,now,b.seq,JSON.stringify({action:'input',seq:b.seq,x:b.x,y:b.y,evadeSeq:b.evadeSeq,evade:b.evade})).run();
  }else await db.prepare("INSERT INTO multiplayer_inputs(key,code,pilot,seen,input_at,seq,data) VALUES(?,?,?,?,0,-1,'{}') ON CONFLICT(key) DO UPDATE SET seen=excluded.seen").bind(key,room.code,p.id,now).run();
  const lease=random(16),locked=await db.prepare('UPDATE multiplayer_rooms SET lease=?,lease_until=? WHERE code=? AND lease_until<?').bind(lease,now+10000,room.code,now).run();
  if(locked.meta.changes){try{
@@ -17,7 +17,7 @@ async function exchange(db,room,p,b,now){
   for(const input of packets.results){const pilot=room.players.find(x=>x.id===input.pilot);if(pilot)pilot.seen=Math.max(pilot.seen,input.seen);}
   advance(room,now);
   for(const input of packets.results){const pilot=room.players.find(x=>x.id===input.pilot);if(!pilot||input.seq<=pilot.seq)continue;const data=JSON.parse(input.data);applyAction(room,pilot,data,input.input_at);pilot.seen=Math.max(pilot.seen,input.seen);}
-  const persisted=await db.prepare('UPDATE multiplayer_rooms SET data=?,revision=revision+1,updated=? WHERE code=? AND revision=? AND lease=?').bind(JSON.stringify(room),now,room.code,row.revision,lease).run();if(persisted.meta.changes)await saveStats(db,room);
+  room.revision=row.revision+1;const persisted=await db.prepare('UPDATE multiplayer_rooms SET data=?,revision=revision+1,updated=? WHERE code=? AND revision=? AND lease=?').bind(JSON.stringify(room),now,room.code,row.revision,lease).run();if(persisted.meta.changes)await saveStats(db,room);
  }finally{await db.prepare('UPDATE multiplayer_rooms SET lease=NULL,lease_until=0 WHERE code=? AND lease=?').bind(room.code,lease).run();}}
  const latest=await db.prepare('SELECT data FROM multiplayer_rooms WHERE code=?').bind(room.code).first();return latest?JSON.parse(latest.data):room;
 }
@@ -36,7 +36,7 @@ export async function multiplayer(request,db){try{
   await db.prepare('DELETE FROM multiplayer_inputs WHERE code NOT IN (SELECT code FROM multiplayer_rooms)').run();
   await db.prepare('DELETE FROM multiplayer_rooms WHERE code IN (SELECT code FROM multiplayer_rooms WHERE updated < ? LIMIT 10)').bind(now-2*60*60*1000).run();
   const bytes=crypto.getRandomValues(new Uint8Array(6)),alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',code=[...bytes].map(x=>alphabet[x%alphabet.length]).join('');const room=newRoom(code,owner,id,b,now);room.players[0].account=account;room.players[0].accountUser=accountUser;if(accountUser){const profile=await accountProfile(db,accountUser);if(profile)room.players[0].name=profile.name;}
-  await db.prepare('INSERT INTO multiplayer_rooms(code,revision,updated,data) VALUES(?,0,?,?)').bind(code,now,JSON.stringify(room)).run();return json({pilot:id,room:publicRoom(room,id)});
+  await db.prepare('INSERT INTO multiplayer_rooms(code,revision,updated,data) VALUES(?,0,?,?)').bind(code,now,JSON.stringify(room)).run();return json({pilot:id,room:publicRoom(room,id,now)});
  }
  const code=String(b.code||'').toUpperCase();if(!/^[A-Z2-9]{6}$/.test(code))fail('Enter a six-character room code');
  for(let retry=0;retry<5;retry++){
@@ -45,16 +45,17 @@ export async function multiplayer(request,db){try{
   if((p.accountUser||null)!==accountUser)fail('Your sign-in changed. Join a new room.',401);
   await saveStats(db,room);
   if(p.left)fail('You left this match. Join a new room.',409);
-  if(['countdown','playing'].includes(room.phase)&&['input','state','join'].includes(b.action)){const shared=await exchange(db,room,p,b,now);return json({pilot:id,room:publicRoom(shared,id)});}
-  if(now-(p.requestAt||0)<45&&b.action==='input')fail('Inputs arriving too quickly',429);
+  if(['countdown','playing'].includes(room.phase)&&['input','state','join'].includes(b.action)){const shared=await exchange(db,room,p,b,now);return json({pilot:id,room:publicRoom(shared,id,now)});}
+  // Bursty mobile delivery is coalesced, not treated as a lost connection.
+  if(now-(p.requestAt||0)<45&&b.action==='input')return json({pilot:id,room:publicRoom(room,id,now)});
   advance(room,now);const completed=room.phase==='results'&&!room.statsRecorded?structuredClone(room):null;p.requestAt=now;applyAction(room,p,b,now);
   if(!room.players.some(x=>x.id===room.host&&!x.left&&now-x.seen<12000))room.host=room.players.find(x=>!x.left&&now-x.seen<12000)?.id||room.players.find(x=>!x.left)?.id||null;
   if(room.phase==='lobby')room.players=room.players.filter(x=>now-x.seen<120000);
-  const result=await db.prepare('UPDATE multiplayer_rooms SET data = ?, revision = revision+1, updated = ? WHERE code = ? AND revision = ?').bind(JSON.stringify(room),now,code,row.revision).run();if(!result.meta.changes)continue;
+  room.revision=row.revision+1;const result=await db.prepare('UPDATE multiplayer_rooms SET data = ?, revision = revision+1, updated = ? WHERE code = ? AND revision = ?').bind(JSON.stringify(room),now,code,row.revision).run();if(!result.meta.changes)continue;
   if(completed)await saveStats(db,completed);
   let grant=null;
   if(b.action==='claim'&&room.phase==='results'&&p.reward!==undefined){const grantId=code+':'+room.created+':'+room.round+':'+p.id;await db.prepare('INSERT OR IGNORE INTO multiplayer_grants(id,owner,amount,created) VALUES(?,?,?,?)').bind(grantId,p.account||account,p.reward,now).run();const bank=await db.prepare('SELECT COALESCE(SUM(amount),0) AS balance FROM multiplayer_grants WHERE owner = ?').bind(p.account||account).first();grant={id:grantId,amount:p.reward,balance:bank.balance};}
-  return json({pilot:id,room:publicRoom(room,id),grant});
+  return json({pilot:id,room:publicRoom(room,id,now),grant});
  }
  return json({error:'Room is busy; reconnecting.'},409);
  }catch(e){console.error('multiplayer',e.message);return json({error:e.status?e.message:'Multiplayer service error. Please retry.'},e.status||500);}}
