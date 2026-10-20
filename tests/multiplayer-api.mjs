@@ -14,7 +14,7 @@ async function call(i,action,data={}){const r=await fetch(origin+'/api/multiplay
 try{
  let a=await call(0,'create',{name:'One',world:'sunscar',mode:'collector'});assert.equal(a.status,200);const code=a.room.code;const joined=await Promise.all([1,2,3].map(i=>call(i,'join',{code,name:'Pilot '+i})));assert.ok(joined.every(r=>r.status===200));assert.equal((await call(4,'join',{code})).status,409);
  a=await call(0,'state',{code});assert.equal(a.room.players.length,4);assert.ok(a.room.players.every(p=>!('owner'in p)&&!('account'in p)));assert.equal((await call(4,'state',{code})).status,403);assert.equal((await call(1,'settings',{code,world:'easy'})).status,403);
- await Promise.all([0,1,2,3].map(i=>call(i,'ready',{code,ready:true})));a=await call(0,'state',{code});assert.equal(a.room.phase,'countdown');assert.equal(new Set(a.room.players.map(p=>p.id)).size,4);
+ await Promise.all([0,1,2,3].map(i=>call(i,'ready',{code,ready:true})));assert.equal((await call(1,'start',{code})).status,403);a=await call(0,'start',{code});assert.equal(a.room.phase,'countdown');assert.equal(new Set(a.room.players.map(p=>p.id)).size,4);
  // Reconnect uses the same session and pilot ID rather than allocating a seat.
  const before=a.pilot;assert.equal((await call(0,'join',{code})).pilot,before);
  // A leased simulator never blocks other pilots from publishing inputs.

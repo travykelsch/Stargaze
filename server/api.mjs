@@ -50,7 +50,7 @@ export async function multiplayer(request,db){try{
  const code=String(b.code||'').toUpperCase();if(!/^[A-Z2-9]{6}$/.test(code))fail('Enter a six-character room code');
  for(let retry=0;retry<5;retry++){
   const row=await db.prepare('SELECT revision,data,updated FROM multiplayer_rooms WHERE code = ?').bind(code).first();if(!row||now-row.updated>2*60*60*1000)fail('Room not found or expired',404);const room=JSON.parse(row.data);let p=room.players.find(x=>x.owner===owner);
-  if(!p){if(b.action!=='join')fail('Join this room first',403);if(!['lobby','results'].includes(room.phase))fail('This match has started. Join the next round.',409);if(room.players.length>=4)fail('Room is full',409);if(accountUser&&room.players.some(x=>x.accountUser===accountUser&&!x.left))fail('This account is already in the room in another tab',409);p=newPilot(id,owner,b,now);p.account=account;p.accountUser=accountUser;if(accountUser){const profile=await accountProfile(db,accountUser);if(profile)p.name=profile.name;}room.players.push(p);}
+  if(!p){if(b.action!=='join')fail('Join this room first',403);if(!['lobby','results'].includes(room.phase))fail('This match has started. Join the next round.',409);room.players=room.players.filter(x=>!x.bot);if(room.players.length>=4)fail('Room is full',409);if(accountUser&&room.players.some(x=>x.accountUser===accountUser&&!x.left))fail('This account is already in the room in another tab',409);p=newPilot(id,owner,b,now);p.account=account;p.accountUser=accountUser;if(accountUser){const profile=await accountProfile(db,accountUser);if(profile)p.name=profile.name;}room.players.push(p);}
   if((p.accountUser||null)!==accountUser)fail('Your sign-in changed. Join a new room.',401);
   await saveStats(db,room);
   if(p.left)fail('You left this match. Join a new room.',409);
@@ -58,7 +58,7 @@ export async function multiplayer(request,db){try{
   // Bursty mobile delivery is coalesced, not treated as a lost connection.
   if(now-(p.requestAt||0)<45&&b.action==='input')return json({pilot:id,room:publicRoom(room,id,now)});
   advance(room,now);const completed=room.phase==='results'&&!room.statsRecorded?structuredClone(room):null;p.requestAt=now;applyAction(room,p,b,now);
-  if(!room.players.some(x=>x.id===room.host&&!x.left&&now-x.seen<12000))room.host=room.players.find(x=>!x.left&&now-x.seen<12000)?.id||room.players.find(x=>!x.left)?.id||null;
+  if(!room.players.some(x=>x.id===room.host&&!x.bot&&!x.left&&now-x.seen<12000))room.host=room.players.find(x=>!x.bot&&!x.left&&now-x.seen<12000)?.id||room.players.find(x=>!x.bot&&!x.left)?.id||null;
   if(room.phase==='lobby')room.players=room.players.filter(x=>now-x.seen<120000);
   room.revision=row.revision+1;const result=await db.prepare('UPDATE multiplayer_rooms SET data = ?, revision = revision+1, updated = ? WHERE code = ? AND revision = ?').bind(JSON.stringify(room),now,code,row.revision).run();if(!result.meta.changes)continue;
   if(completed)await saveStats(db,completed);

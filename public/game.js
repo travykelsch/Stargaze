@@ -1,5 +1,5 @@
 import {installAccounts,mergeRecords} from './accounts-client.mjs?v=51';
-import {installMultiplayer} from './multiplayer.mjs?v=52';
+import {installMultiplayer} from './multiplayer.mjs?v=53';
 import {sunscarLighting} from './sunscar-lighting.mjs?v=49';
 import {sectionAt,tunnelBlend} from './sunscar-course.mjs?v=49';
 import {ringOffset,flightTime,flightDistance,objectTime} from './progression.mjs?v=49';

@@ -13,7 +13,7 @@ try{
   let r=await call(0,'create',{name:'QA 1',world:'sunscar',difficulty:'easy',mode});code=r.room.code;
   for(let i=1;i<4;i++)await call(i,'join',{name:'QA '+(i+1),ship:['comet','dart','twin-pod-racer','night-glider'][i]});
   const joined=await Promise.all([0,1,2,3].map(i=>call(i,'state')));assert.ok(joined.every(x=>x.room.players.length===4));
-  await Promise.all([0,1,2,3].map(i=>call(i,'ready',{ready:true})));r=await call(0,'state');console.log(JSON.stringify({mode,phase:r.room.phase,ready:r.room.players.map(p=>p.ready),ages:r.room.players.map(p=>r.room.serverNow-p.seen)}));assert.equal(r.room.phase,'countdown');
+  await Promise.all([0,1,2,3].map(i=>call(i,'ready',{ready:true})));r=await call(0,'start');console.log(JSON.stringify({mode,phase:r.room.phase,ready:r.room.players.map(p=>p.ready),ages:r.room.players.map(p=>r.room.serverNow-p.seen)}));assert.equal(r.room.phase,'countdown');
   const seq=[0,0,0,0],seenIds=new Set();let frames=0,lastPhase='countdown',maxTime=0,states=joined;
   const until=Date.now()+9500;
   while(Date.now()<until){states=await Promise.all([0,1,2,3].map((i)=>{const s=states[i],p=s.room.players.find(p=>p.id===s.pilot),q=safeRoute(p.z+difficulty(s.room.time,'easy','sunscar').speed*.08,s.room.seed,'easy','sunscar');return call(i,'input',{seq:++seq[i],x:Math.max(-1,Math.min(1,(q.x-p.x)/2.7)),y:Math.max(-1,Math.min(1,(q.y-p.y)/2.4)),evadeSeq:0});}));for(const s of states){assert.equal(s.room.mode,mode);assert.equal(s.room.players.length,4);seenIds.add(s.pilot);maxTime=Math.max(maxTime,s.room.time);lastPhase=s.room.phase;}frames++;await new Promise(r=>setTimeout(r,110));}

@@ -1,6 +1,6 @@
 # Stargaze
 
-An endless survival flying game with six worlds, twenty ships, and online multiplayer for two to four human players.
+An endless survival flying game with six worlds, twenty ships, and four-pilot online matches for one to four humans, with difficulty-based bots filling empty seats.
 
 **Play:** https://skyward-flight.calmhippo4.chatgpt.site
 
@@ -34,6 +34,9 @@ node tests/accounts-page.mjs
 node tests/multiplayer.mjs
 node tests/multiplayer-api.mjs
 node tests/multiplayer-ui.mjs
+node tests/bots.mjs
+node tests/bots-api.mjs
+MP_BOT_QA=1 MP_JITTER_QA=1 node tests/multiplayer-ui.mjs
 ```
 
 ## Hosting
@@ -41,6 +44,13 @@ node tests/multiplayer-ui.mjs
 The public game remains hosted through Sites. GitHub stores source; uploading source does not migrate hosting or the live database. Independent hosting needs a compatible Worker deployment, D1 provisioning and the included migrations, adaptation of Sites-specific configuration, and support for the included username/password session backend (or an equivalent trusted identity provider). GitHub Pages alone cannot run the multiplayer backend. Do not deploy using the local configuration's placeholder D1 ID.
 
 ## Multiplayer
+
+The host presses **Start match**. One, two, three or four humans may launch;
+every vacant seat becomes a clearly labeled bot. Ready states are advisory, and
+the host controls the shared countdown. Bots use the selected difficulty, normal
+fuel, controls, collisions, pickups and elimination rules. Friends can take bot
+seats between rounds; the next launch always rebuilds a four-pilot roster.
+See `docs/multiplayer-bots-v53.md` for AI tuning and verification.
 
 - **Race:** a course approximately 120 seconds at baseline speed, checkpoints, two-second crash respawns and race-only boost/shield rings.
 - **Collector:** 120 seconds; 1/3/5-point rings; two-second respawns retain points.
