@@ -54,7 +54,7 @@ export async function multiplayer(request,db){try{
   if((p.accountUser||null)!==accountUser)fail('Your sign-in changed. Join a new room.',401);
   await saveStats(db,room);
   if(p.left)fail('You left this match. Join a new room.',409);
-  if(['countdown','playing'].includes(room.phase)&&['input','state','join'].includes(b.action)){const shared=await exchange(db,room,p,b,now);return json({pilot:id,room:publicRoom(shared,id,now)});}
+  if(['preparing','countdown','playing'].includes(room.phase)&&['input','state','join'].includes(b.action)){const shared=await exchange(db,room,p,b,now);return json({pilot:id,room:publicRoom(shared,id,now)});}
   // Bursty mobile delivery is coalesced, not treated as a lost connection.
   if(now-(p.requestAt||0)<45&&b.action==='input')return json({pilot:id,room:publicRoom(room,id,now)});
   advance(room,now);const completed=room.phase==='results'&&!room.statsRecorded?structuredClone(room):null;p.requestAt=now;applyAction(room,p,b,now);

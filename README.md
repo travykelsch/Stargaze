@@ -50,7 +50,7 @@ every vacant seat becomes a clearly labeled bot. Ready states are advisory, and
 the host controls the shared countdown. Bots use the selected difficulty, normal
 fuel, controls, collisions, pickups and elimination rules. Friends can take bot
 seats between rounds; the next launch always rebuilds a four-pilot roster.
-See `docs/multiplayer-bots-v53.md` for AI tuning and verification.
+Each browser first builds and submits a world frame; the countdown waits for all humans. Live gameplay uses a persistent WebSocket and D1 authority. Spectating is explicit. See `docs/multiplayer-v55.md` for the scene/transport repair and verification limits, and `docs/multiplayer-bots-v53.md` for AI tuning.
 
 - **Race:** a course approximately 120 seconds at baseline speed, checkpoints, two-second crash respawns and race-only boost/shield rings.
 - **Collector:** 120 seconds; 1/3/5-point rings; two-second respawns retain points.

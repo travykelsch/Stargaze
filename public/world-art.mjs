@@ -139,11 +139,11 @@ export function createWorldArt(register){
 // orientation share the same analytic derivative, with no heading reversals.
 const forward=new T.Vector3(),side=new T.Vector3(),up=new T.Vector3(),basis=new T.Matrix4(),roll=new T.Quaternion();
 export const DRAGON_BASE_SPEED=8,DRAGON_WING_RATE=12;
-export function animateCreature(a,time,d,dt=.01){
+export function animateCreature(a,time,d,dt=.01,direct=false){
  const heading=a.phase*2.399,axis=new T.Vector3(Math.cos(heading),Math.sin(a.phase*1.7)*.48,Math.sin(heading)).normalize(),second=new T.Vector3(-Math.sin(heading)*.65,.8,Math.cos(heading)*.65);second.addScaledVector(axis,-second.dot(axis)).normalize();
  const dragon=a.creature==='dragon',radius=a.amp,travel=6*time+300*(Math.exp(-time/60)-1),dragonDistance=(DRAGON_BASE_SPEED+6)*time+360*(Math.exp(-time/60)-1),angle=a.phase+(dragon?dragonDistance/Math.max(radius,.1):Math.abs(a.rate)*travel*.45),co=Math.cos(angle),si=Math.sin(angle);
  a.g.position.set(a.baseX+radius*(co*axis.x+si*.75*second.x),a.baseY+radius*(co*axis.y+si*.75*second.y),a.baseZ+radius*(co*axis.z+si*.75*second.z));
- forward.copy(axis).multiplyScalar(-si).addScaledVector(second,co*.75).normalize();side.crossVectors(forward,T.Object3D.DEFAULT_UP).normalize();up.crossVectors(side,forward).normalize();basis.makeBasis(forward,up,side);const q=new T.Quaternion().setFromRotationMatrix(basis);roll.setFromAxisAngle(new T.Vector3(1,0,0),Math.sin(angle)*.20);q.multiply(roll);a.g.quaternion.slerp(q,1-Math.exp(-6*dt));
+ forward.copy(axis).multiplyScalar(-si).addScaledVector(second,co*.75).normalize();side.crossVectors(forward,T.Object3D.DEFAULT_UP).normalize();up.crossVectors(side,forward).normalize();basis.makeBasis(forward,up,side);const q=new T.Quaternion().setFromRotationMatrix(basis);roll.setFromAxisAngle(new T.Vector3(1,0,0),Math.sin(angle)*.20);q.multiply(roll);if(direct)a.g.quaternion.copy(q);else a.g.quaternion.slerp(q,1-Math.exp(-6*dt));
  const bird=a.creature==='bird',period=bird?7:7.5,cycle=(time+a.phase*2)%period,glide=cycle>(bird?4.5:6.7),beat=time*(bird?8:DRAGON_WING_RATE)+a.phase;
  const smooth=x=>{const t=Math.min(1,Math.max(0,x));return t*t*(3-2*t);},feather=bird?1:cycle<5.7?1:cycle<6.1?1-smooth((cycle-5.7)/.4):cycle<6.7?0:smooth((cycle-6.7)/.8);
  for(const [i,w]of (a.wings||[]).entries()){const sign=i===0?-1:1,stroke=bird?Math.sin(beat):Math.sin(beat)+Math.sin(beat*2)*.12;w.rotation.x=sign*(.08+stroke*(bird?(glide?.035:.40):.045+.47*feather));if(!bird){w.rotation.y=sign*Math.sin(beat-.5)*.035*feather;w.rotation.z=Math.sin(beat+.2)*.035*feather;}if(w.userData.tip)w.userData.tip.rotation.x=sign*Math.sin(beat-(bird?.65:.8))*(bird?(glide?.035:.22):.055+.32*feather);}

@@ -1,6 +1,6 @@
 import {artCanvas} from './art-canvas.mjs';
 import {createPassageArt} from './passage-art.mjs?v=49';
-import {createSunscarWorld} from './sunscar-world.mjs?v=49';
+import {createSunscarWorld} from './sunscar-world.mjs?v=55';
 export {FALL_WARNING_SECONDS} from './hazard-warnings.mjs?v=36';
 import {createFrostWorld} from './frost-world.mjs?v=39';
 import {createEmberWorld} from './ember-world.mjs?v=39';

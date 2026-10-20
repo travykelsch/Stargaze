@@ -9,7 +9,7 @@ try{
  for(const [humans,difficulty,mode]of [[1,'easy','collector'],[2,'medium','survival'],[3,'hard','race'],[4,'easy','collector']]){
   let r=await call(0,'create',{world:'sunscar',difficulty,mode,name:'QA Host'});code=r.room.code;
   for(let i=1;i<humans;i++)await call(i,'join',{name:'QA '+i});
-  r=await call(0,'start');assert.equal(r.room.phase,'countdown');assert.equal(r.room.players.length,4);assert.equal(r.room.players.filter(p=>p.bot).length,4-humans);assert.ok(r.room.players.filter(p=>p.bot).every(p=>p.botDifficulty===difficulty));
+  r=await call(0,'start');assert.equal(r.room.phase,'preparing');for(let i=0;i<humans;i++)r=await call(i,'loaded');assert.equal(r.room.phase,'countdown');assert.equal(r.room.players.length,4);assert.equal(r.room.players.filter(p=>p.bot).length,4-humans);assert.ok(r.room.players.filter(p=>p.bot).every(p=>p.botDifficulty===difficulty));
   await new Promise(resolve=>setTimeout(resolve,Math.max(0,r.room.startAt-r.room.serverNow+100)));
   const seq=Array(humans).fill(0);for(let frame=0;frame<3;frame++){
    const states=await Promise.all(Array.from({length:humans},(_,i)=>call(i,'input',{seq:++seq[i],x:0,y:0,evadeSeq:0})));r=states[0];assert.ok(states.every(s=>s.room.players.length===4));assert.ok(states.every(s=>new Set(s.room.players.map(p=>p.id)).size===4));await new Promise(resolve=>setTimeout(resolve,120));

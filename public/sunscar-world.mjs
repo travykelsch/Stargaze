@@ -99,6 +99,7 @@ export function createSunscarWorld(scene,world){
   if(events.length>64)events.splice(0,events.length-64);lastTime=time;
  }
  function applyNetwork(racers,time,distance,d,route,obstacles,player){if(!field)initialize(seed,mode,route,time,distance);field.racers=racers;field.time=time;field.distance=distance;step(0,time,distance,d,route,obstacles,player);}
+ function networkEvent(e){if(!active||!['bump','crash'].includes(e.type))return;addEffect(e.type==='bump'?'sparks':'explosion',e.x,e.y,e.forward,e.time,e.strength||1);if(e.type==='crash')for(const tile of tiles)tile.life?.react(e);events.push(e);if(events.length>64)events.shift();}
  function setFrameCost(dt){if(!active)return;quality=clamp(quality+(dt>.029?-.012:dt<.020?.002:0),.5,1);}
  function update(distance,time,player){if(!active)return;wind.value=time;
   for(let i=tiles.length-1;i>=0;i--)if(distance-tiles[i].z>400){const tile=tiles[i];tile.g.traverse(o=>{if(o.isInstancedMesh)o.dispose();});world.remove(tile.g);tiles.splice(i,1);}
@@ -114,5 +115,5 @@ export function createSunscarWorld(scene,world){
  function drainEvents(){return events.splice(0);}
  function reset(){for(const tile of tiles){tile.g.traverse(o=>{if(o.isInstancedMesh)o.dispose();});world.remove(tile.g);}tiles.length=rigs.length=hazards.length=effects.length=events.length=0;for(const v of visuals.values())world.remove(v.g);visuals.clear();field=null;debris.count=0;groundShadows.count=0;dustGeo.setDrawRange(0,0);sparkGeo.setDrawRange(0,0);smokeGeo.setDrawRange(0,0);smoke.visible=false;torchLights.forEach(l=>l.intensity=0);}
  function setActive(value){active=value;scene.environment=value?M.environment:null;torchGroup.visible=value;if(value)ensureTorches();horizon.visible=debris.visible=smoke.visible=dust.visible=sparks.visible=groundShadows.visible=value;tiles.forEach(t=>t.g.visible=value);for(const v of visuals.values())v.g.visible=value;if(!value){smokeGeo.setDrawRange(0,0);smoke.visible=false;torchLights.forEach(l=>l.intensity=0);}}
- return {materials:M,civilization,setFrameCost,get quality(){return quality},flagCloth,sky,rock,metal,palettes,obstacle,motion,spawn,step,initialize,applyNetwork,update,reset,setActive,drainEvents,torchLights,shared,horizon,dust,sparks,groundShadows,smoke,racerArt,visualPool,debris,get hazards(){return hazards},get field(){return field},get tiles(){return tiles},get effects(){return effects},get rigs(){return rigs},get active(){return active}};
+ return {materials:M,civilization,setFrameCost,get quality(){return quality},flagCloth,sky,rock,metal,palettes,obstacle,motion,spawn,step,initialize,applyNetwork,networkEvent,update,reset,setActive,drainEvents,torchLights,shared,horizon,dust,sparks,groundShadows,smoke,racerArt,visualPool,debris,get hazards(){return hazards},get field(){return field},get tiles(){return tiles},get effects(){return effects},get rigs(){return rigs},get active(){return active}};
 }

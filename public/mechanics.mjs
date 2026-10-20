@@ -103,4 +103,4 @@ if(world==='sunscar'){asteroids.splice(0,asteroids.length,...planSunscar({index,
   }
  }
  asteroids.push(...planPassages(index,seed,mode,world,safeRoute));
- return {rings,asteroids};}
+ for(let i=0;i<rings.length;i++)rings[i].id=index+':'+i;return {rings,asteroids};}

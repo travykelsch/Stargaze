@@ -8,7 +8,7 @@ const engine=geometry();let checks=0;
 function make(humans=1,difficulty='easy',mode='collector',world='easy'){
  const room=newRoom('BOTEST','owner0','p0',{difficulty,mode,world},0);
  for(let i=1;i<humans;i++)room.players.push(newPilot('p'+i,'owner'+i,{},0));
- applyAction(room,room.players[0],{action:'start'},0);room.seed=113;return room;
+ applyAction(room,room.players[0],{action:'start'},0);for(const p of room.players)if(!p.bot)applyAction(room,p,{action:'loaded'},0);room.seed=113;return room;
 }
 for(let humans=1;humans<=4;humans++)for(const d of ['easy','medium','hard'])for(const mode of ['race','collector','survival']){
  const r=make(humans,d,mode);assert.equal(r.players.length,4);assert.equal(r.players.filter(p=>p.bot).length,4-humans);assert.equal(new Set(r.players.map(p=>p.id)).size,4);assert.ok(r.players.filter(p=>p.bot).every(p=>p.botDifficulty===d&&!p.accountUser&&SHIPS.some(s=>s.id===p.ship)));checks++;

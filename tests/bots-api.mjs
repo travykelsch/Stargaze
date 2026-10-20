@@ -11,7 +11,7 @@ try{
   const created=await call(0,'create',{world:'sunscar',difficulty:'hard',mode:'collector'}),code=created.room.code;
   for(let i=1;i<humans;i++)await call(i,'join',{code});
   if(humans>1)assert.equal((await call(1,'start',{code})).status,403);
-  const started=await call(0,'start',{code});assert.equal(started.status,200);assert.equal(started.room.phase,'countdown');assert.equal(started.room.players.length,4);assert.equal(started.room.players.filter(p=>p.bot).length,4-humans);
+  const started=await call(0,'start',{code});assert.equal(started.status,200);assert.equal(started.room.phase,'preparing');assert.equal(started.room.players.length,4);assert.equal(started.room.players.filter(p=>p.bot).length,4-humans);
   assert.ok(started.room.players.filter(p=>p.bot).every(p=>p.botDifficulty==='hard'&&!('botBrain'in p)&&!('owner'in p)));
   assert.equal((await call(4,'join',{code})).status,409);assert.equal((await call(0,'start',{code})).status,409);
   let row=sql.prepare('SELECT data FROM multiplayer_rooms WHERE code=?').get(code),room=JSON.parse(row.data);room.phase='results';room.winners=[room.players[0].id];room.players.forEach(p=>p.reward=10);sql.prepare('UPDATE multiplayer_rooms SET data=? WHERE code=?').run(JSON.stringify(room),code);
