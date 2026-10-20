@@ -1,0 +1,5 @@
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+export const rooms = sqliteTable('multiplayer_rooms', { code: text('code').primaryKey(), revision: integer('revision').notNull().default(0), updated: integer('updated').notNull(), data: text('data').notNull(), lease: text('lease'), leaseUntil: integer('lease_until').notNull().default(0) });
+export const grants = sqliteTable('multiplayer_grants', { id: text('id').primaryKey(), owner: text('owner').notNull(), amount: integer('amount').notNull(), created: integer('created').notNull() });
+export const rateLimits = sqliteTable('multiplayer_limits', { owner: text('owner').primaryKey(), created: integer('created').notNull(), count: integer('count').notNull().default(0) });
+export const inputs = sqliteTable('multiplayer_inputs', { key: text('key').primaryKey(), code: text('code').notNull(), pilot: text('pilot').notNull(), seen: integer('seen').notNull(), inputAt: integer('input_at').notNull(), seq: integer('seq').notNull(), data: text('data').notNull() });

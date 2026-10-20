@@ -1,0 +1,1 @@
+export function sqliteD1(sqlite){return {prepare(sql){const bound=args=>({async first(){return sqlite.prepare(sql).get(...args)||null;},async all(){return {results:sqlite.prepare(sql).all(...args)};},async run(){return {meta:{changes:Number(sqlite.prepare(sql).run(...args).changes)}};}});return {...bound([]),bind(...args){return bound(args);}};}};}

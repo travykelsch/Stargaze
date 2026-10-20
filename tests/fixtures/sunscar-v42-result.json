@@ -1,0 +1,80 @@
+{
+  "seed": 113,
+  "seconds": 180,
+  "dt": 0.02,
+  "nearDistance": 200,
+  "report": [
+    {
+      "mode": "easy",
+      "nearAverage": 10.621549539938659,
+      "emptyPercent": 0,
+      "peak": 21,
+      "stats": {
+        "spawned": 537,
+        "bumps": 447,
+        "crashes": 388,
+        "terrainCrashes": 195,
+        "passes": 247,
+        "rearWarnings": 142,
+        "stalls": 59,
+        "recoveries": 28,
+        "nearSamples": 8999,
+        "nearTotal": 152401
+      },
+      "safety": {
+        "checks": 4268,
+        "plans": 124,
+        "delayed": 1517,
+        "minInitialLead": 3.1561199637376505
+      }
+    },
+    {
+      "mode": "medium",
+      "nearAverage": 7.612881717562342,
+      "emptyPercent": 0,
+      "peak": 17,
+      "stats": {
+        "spawned": 542,
+        "bumps": 393,
+        "crashes": 363,
+        "terrainCrashes": 223,
+        "passes": 295,
+        "rearWarnings": 157,
+        "stalls": 60,
+        "recoveries": 30,
+        "nearSamples": 8999,
+        "nearTotal": 117898
+      },
+      "safety": {
+        "checks": 4202,
+        "plans": 148,
+        "delayed": 1677,
+        "minInitialLead": 3.110187740548247
+      }
+    },
+    {
+      "mode": "hard",
+      "nearAverage": 6.270836111481531,
+      "emptyPercent": 0.5734097879717296,
+      "peak": 14,
+      "stats": {
+        "spawned": 542,
+        "bumps": 342,
+        "crashes": 334,
+        "terrainCrashes": 206,
+        "passes": 313,
+        "rearWarnings": 144,
+        "stalls": 60,
+        "recoveries": 32,
+        "nearSamples": 8999,
+        "nearTotal": 97836
+      },
+      "safety": {
+        "checks": 3732,
+        "plans": 131,
+        "delayed": 1240,
+        "minInitialLead": 3.128765896433553
+      }
+    }
+  ]
+}

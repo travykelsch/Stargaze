@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {makeSector,difficulty,LIMITS} from '../public/mechanics.mjs';
+import {trafficPosition} from '../public/traffic.mjs';
+let smallest=100,largest=0,moving=0,total=0,maxV=0,early=0,late=0;
+for(let seed=1;seed<=40;seed++)for(const time of [0,60,120]){const ships=makeSector(5,time,seed,'hard').asteroids.filter(a=>a.category!=='passage');if(time===0)early+=ships.length;if(time===120)late+=ships.length;for(const a of ships){smallest=Math.min(smallest,a.radius);largest=Math.max(largest,a.radius);total++;const p=trafficPosition(a,a.z-500),q=trafficPosition(a,a.z);if(Math.hypot(p.x-q.x,p.y-q.y)>3)moving++;assert.ok(a.z-a.radius*1.55>5*190+8&&a.z+a.radius*1.55<6*190-8,'bodies stay inside cross-sector reservations');for(let d=a.z-a.reveal;d<a.z+90;d+=19){const p=trafficPosition(a,d),q=trafficPosition(a,d+.01),vx=Math.abs(q.x-p.x)/.01*difficulty(time,'hard').speed,vy=Math.abs(q.y-p.y)/.01*difficulty(time,'hard').speed;maxV=Math.max(maxV,vx,vy);assert.ok(vx<LIMITS.steerX*1.3&&vy<LIMITS.steerY*1.3,'announced motion remains steerable');}}
+ // Check actual animated body envelopes at intermediate positions, including
+ // times between the generator's reservation samples.
+ for(let i=0;i<ships.length;i++)for(let j=i+1;j<ships.length;j++){const a=ships[i],b=ships[j];if(Math.abs(a.z-b.z)>1.55*(a.radius+b.radius)+4)continue;for(let d=Math.min(a.z,b.z)-500;d<Math.max(a.z,b.z)+80;d+=31){const p=trafficPosition(a,d),q=trafficPosition(b,d);assert.ok(Math.abs(p.x-q.x)>1.05*(a.radius+b.radius)||Math.abs(p.y-q.y)>.94*(a.radius+b.radius),'moving traffic avoids overlapping envelopes');}}
+}
+assert.ok(smallest<1&&largest>18,'tiny speeders through enormous haulers');assert.ok(moving/total>.75,'most traffic changes position across the approach');assert.ok(late>early*2.5,'traffic pressure builds throughout the run');console.log(`PASS: ${total} planned craft, radius ${smallest.toFixed(2)}–${largest.toFixed(2)}, ${(moving/total*100).toFixed(0)}% maneuvering, max lateral speed ${maxV.toFixed(1)}, non-overlap and sector handoffs.`);

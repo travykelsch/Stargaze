@@ -1,0 +1,56 @@
+{
+  "kind": "non-rendering scene inventory; includes off-camera meshes",
+  "reports": [
+    {
+      "time": 12,
+      "seed": 113,
+      "mode": "medium",
+      "camera": {
+        "width": 390,
+        "height": 844,
+        "fov": 66
+      },
+      "distance": 1280.176,
+      "draws": 509,
+      "triangles": 388085.3333333333,
+      "instances": 665,
+      "tiles": 8,
+      "actors": 28,
+      "geometryCache": 137
+    },
+    {
+      "time": 24,
+      "seed": 113,
+      "mode": "medium",
+      "camera": {
+        "width": 390,
+        "height": 844,
+        "fov": 66
+      },
+      "distance": 2661.0400000000004,
+      "draws": 470,
+      "triangles": 511967.3333333333,
+      "instances": 1114,
+      "tiles": 8,
+      "actors": 34,
+      "geometryCache": 161
+    },
+    {
+      "time": 36,
+      "seed": 113,
+      "mode": "medium",
+      "camera": {
+        "width": 390,
+        "height": 844,
+        "fov": 66
+      },
+      "distance": 4205.50464,
+      "draws": 438,
+      "triangles": 442767.3333333333,
+      "instances": 706,
+      "tiles": 7,
+      "actors": 38,
+      "geometryCache": 161
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+export function artCanvas(){if(typeof document!=="undefined")return document.createElement("canvas");const gradient={addColorStop(){}};return {width:1,height:1,getContext(){return {fillRect(){},fillText(){},createLinearGradient(){return gradient},createRadialGradient(){return gradient}}}};}

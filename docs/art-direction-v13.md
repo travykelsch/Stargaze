@@ -1,0 +1,14 @@
+# Organic worlds and alien traffic refinement
+
+This update changes world models, creature animation and lighting in the existing game. Steering, player ship models, mode speed/density curves, fuel, swept ring/wingtip collection, scoring, saved data and free Shipyard previews remain intact.
+
+- Added cached authored geometry in `dist/world-art.mjs`: smooth lofted bird/dragon anatomy, eyes/beaks/horns, folded legs/talons, layered feathers, ribbed wing membranes, articulated outer wings and tapered tails. Three natural color variants per species. Bounded elliptical paths occupy independently oriented 3D planes; animals can climb, descend and fly toward, away or diagonally. Heading follows the analytic velocity, with banking and flap/glide cycles. Forgiving torso collisions remain.
+- Floating landforms now have eroded asymmetric contours, layered mineral colors, shelves and branching vegetation. Natural sandstone arches use thick irregular slabs, weathered outcrops and variable-width rock piers, rather than a thin uniform torus. Their collision mesh leaves the opening genuinely clear.
+- Replaced all nine oncoming traffic silhouettes with distinct spacecraft construction: crescent courier, needle/sail skiff, radial ion orb, manta shuttle, annular transport, asymmetric survey craft, ribbed bulk carrier, split-hull freighter and vertical dreadnought. Metal shells, cockpit windows, engine bells, ring drives, struts and armor are baked into shared geometry. Core-volume colliders follow the actual central hull; separated nacelles and curved arms retain their visible gaps. Existing coherent lanes, spacing and signaled merges remain.
+- Easy now uses a blue-to-peach sky, low golden sun, amber/rose key light, cool sky fill and warmer water/clouds. Hard uses darker blue-black haze, lower ambient fill, cool architectural light, magenta rim and two bounded colored city lights. Medium's quiet solar backdrop and asteroid artwork remain, with slightly more restrained fill/exposure.
+
+## Verification
+
+`tests/world-art.mjs` verifies all geometry is finite, closed central hulls/columns face outward, all nine craft silhouettes differ, models fit reserved bounds, animal detail stays below 5,000 triangles and craft below 9,000, animal motion stays inside the spawn envelope, velocity/heading agreement, all eight movement octants, and an actual open rock arch ray test. Existing mechanics, modes, fleet, environments, rewards, audio and non-rendering runtime checks also pass.
+
+Isolated geometry was inspected using an offline software render of the actual mesh data. That is an asset-shape check, **not a browser screenshot**. No supported browser-control skill is available, so actual in-game lighting, phone performance and animation appearance still need the user's real-device playtest. No measured FPS or rendered-site visual QA is claimed.

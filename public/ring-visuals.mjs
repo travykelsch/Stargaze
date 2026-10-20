@@ -1,0 +1,4 @@
+import * as T from './three.module.js';
+// One cached mesh for twelve moving white dashes, replacing four separate boxes.
+// The colored torus keeps its original physical outer radius (1.052).
+export function createRingVisuals(){const positions=[],uv=[];for(let i=0;i<12;i++){const g=new T.RingGeometry(.991,1.011,4,1,i*Math.PI*2/12,Math.PI*2*.028).toNonIndexed();positions.push(...g.attributes.position.array);uv.push(...g.attributes.uv.array);g.dispose();}const dashGeometry=new T.BufferGeometry();dashGeometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));dashGeometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));dashGeometry.computeVertexNormals();dashGeometry.computeBoundingSphere();return {dashGeometry,dashMaterial:new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.93,depthWrite:false,toneMapped:false,fog:false}),colors:[0xffc22e,0x1ceafa,0xff5275]};}

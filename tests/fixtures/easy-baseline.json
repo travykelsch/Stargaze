@@ -1,0 +1,186 @@
+{
+  "difficulty": [
+    {
+      "t": 0,
+      "value": {
+        "speed": 58,
+        "density": 8,
+        "motion": 1,
+        "spin": 1,
+        "drain": 1.1,
+        "ringScale": 1,
+        "corridor": 8
+      }
+    },
+    {
+      "t": 30,
+      "value": {
+        "speed": 78.44015714579037,
+        "density": 22.294338521316476,
+        "motion": 2.967346701436833,
+        "spin": 2.478747253613121,
+        "drain": 1.3967119585679246,
+        "ringScale": 0.9376368883262336,
+        "corridor": 5.256306074253276
+      }
+    },
+    {
+      "t": 60,
+      "value": {
+        "speed": 92.14160422473226,
+        "density": 30.579026637868477,
+        "motion": 4.160602794142788,
+        "spin": 3.410821147209155,
+        "drain": 1.5956039322945008,
+        "ringScale": 0.8929517661871702,
+        "corridor": 3.960276832771835
+      }
+    },
+    {
+      "t": 120,
+      "value": {
+        "speed": 107.48241588433137,
+        "density": 38.163569631220064,
+        "motion": 5.323323583816936,
+        "spin": 4.368627643460593,
+        "drain": 1.8182931338048103,
+        "ringScale": 0.8379913703854599,
+        "corridor": 3.0588927555128924
+      }
+    },
+    {
+      "t": 300,
+      "value": {
+        "speed": 118.86443038889848,
+        "density": 41.8545881081269,
+        "motion": 5.966310265004573,
+        "spin": 4.960406497571185,
+        "drain": 1.9835159250001393,
+        "ringScale": 0.7878482785363955,
+        "corridor": 2.8028760387247686
+      }
+    }
+  ],
+  "sectors": [
+    {
+      "t": 0,
+      "seed": 17,
+      "index": 1,
+      "hash": "4ae89d84d9c2f1b6fccdd2df7c3d9f324c98ba99f9ec18ccb0e564ef92188160"
+    },
+    {
+      "t": 0,
+      "seed": 17,
+      "index": 7,
+      "hash": "c48e2711bfc8051db4cc29fed04281be6843acdcadaa6a7f53cb0e94b49cc787"
+    },
+    {
+      "t": 0,
+      "seed": 99,
+      "index": 1,
+      "hash": "9669e48d170ba5cf3ec25c2a0b6f912ef3f274ee47d68fde692cb2206bc58a6f"
+    },
+    {
+      "t": 0,
+      "seed": 99,
+      "index": 7,
+      "hash": "984afaaf43bc3322e1ca40b4b1e553cd642fe1ac66ad7355f13e3fff60e3323a"
+    },
+    {
+      "t": 30,
+      "seed": 17,
+      "index": 1,
+      "hash": "fc722b79977e684e507ed357e94df2b4df5298792ba4f7c56662d447d123153d"
+    },
+    {
+      "t": 30,
+      "seed": 17,
+      "index": 7,
+      "hash": "f231c73924f12ca716657172b1091b271608e41ea083f823ac8cd75de0e3745b"
+    },
+    {
+      "t": 30,
+      "seed": 99,
+      "index": 1,
+      "hash": "28765b056cd9b259124d2faffab247d4bb62f05d97e641599b0efbcbfe0b71e0"
+    },
+    {
+      "t": 30,
+      "seed": 99,
+      "index": 7,
+      "hash": "e9896842c3fa842d257e9ee33e35e80cee914a6ca0ba1f1f7a8a2fa2e8dbc0b0"
+    },
+    {
+      "t": 60,
+      "seed": 17,
+      "index": 1,
+      "hash": "5f6c00f543b9b895f87c5d2f215d0d0d31f091ce20501c0464c4e709abce9d84"
+    },
+    {
+      "t": 60,
+      "seed": 17,
+      "index": 7,
+      "hash": "926828fcd108b67e218b69b3cea745f2f3a60765a23bda69eb86cbd06a3b44f0"
+    },
+    {
+      "t": 60,
+      "seed": 99,
+      "index": 1,
+      "hash": "05fd406e008744c7d9a1578dd980c27f9def682d7b2f57c47b3204e9841fc7c4"
+    },
+    {
+      "t": 60,
+      "seed": 99,
+      "index": 7,
+      "hash": "a66b8fd8e9c54c6a4c4d0b89b831ecebc6930fbab84dceb09edbac949c26848d"
+    },
+    {
+      "t": 120,
+      "seed": 17,
+      "index": 1,
+      "hash": "66bbfa0b4e2777e8c911c9761d082dda9987e29993a34cb09a04cd9f1903bcd8"
+    },
+    {
+      "t": 120,
+      "seed": 17,
+      "index": 7,
+      "hash": "2beab8a8de313c4921bea673805985ca1fc3a20ec2b1f2985cca166a99a786f0"
+    },
+    {
+      "t": 120,
+      "seed": 99,
+      "index": 1,
+      "hash": "3f29c4af43d48962577ddba98b613ea8fc4e8c40d46f3c9a5149b663a3909787"
+    },
+    {
+      "t": 120,
+      "seed": 99,
+      "index": 7,
+      "hash": "b82a274d808f141e43c10ee9e14da724fb342c0418774e19cad4e34ab995c5b6"
+    },
+    {
+      "t": 300,
+      "seed": 17,
+      "index": 1,
+      "hash": "8e7a8778959f8b54846bbbe667fafd0573eca367397b97efef7686f03ad33c62"
+    },
+    {
+      "t": 300,
+      "seed": 17,
+      "index": 7,
+      "hash": "5da9c587d7283b5bf7c99cf206d79e75a4e45bbcdb16e0b9c48c51675a619b6c"
+    },
+    {
+      "t": 300,
+      "seed": 99,
+      "index": 1,
+      "hash": "7791d10d36e0709e441597934bbc819425e9bc6df06d7235dce0fa39a72fd613"
+    },
+    {
+      "t": 300,
+      "seed": 99,
+      "index": 7,
+      "hash": "640cf3705dec82df7542f2122cea680d8b6b0008cd7ea29ae8634e85ef984a12"
+    }
+  ]
+}

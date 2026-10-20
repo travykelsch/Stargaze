@@ -1,0 +1,11 @@
+import * as T from './three.module.js';
+const STYLE={easy:{color:0xa29379,name:'STONE PASSAGE'},medium:{color:0x736d79,name:'ASTEROID PASSAGE'},hard:{color:0x293347,name:'SKYWAY GANTRY'},ember:{color:0x593f42,name:'VOLCANIC PASSAGE'},frost:{color:0x9bbfcd,name:'ICE PASSAGE'},sunscar:{color:0xd2ac82,name:'CANYON PASSAGE'}};
+export function createPassageArt(world,themes){const materials=new Map();
+ function material(worldId){if(worldId==='sunscar')return themes.sunscar.materials.rock;if(!materials.has(worldId)){const s=STYLE[worldId];materials.set(worldId,new T.MeshStandardMaterial({color:s.color,roughness:worldId==='frost'?.42:.83,metalness:worldId==='hard'?.64:0,side:T.DoubleSide}));}return materials.get(worldId);}
+ function create(a){const {gapX:x,gapY:y,halfX:w,halfY:h}=a,industrial=a.world==='hard';const points=industrial?[[-46,-36],[-46,36],[46,36],[46,-36]]:[[-47,-36],[-48,-8],[-46,14],[-48,35],[-28,37],[-5,35],[19,38],[47,35],[46,9],[49,-15],[47,-36],[12,-38],[-19,-36]];
+  const shape=new T.Shape(points.map(p=>new T.Vector2(...p))),hole=new T.Path([[x-w,y-h],[x-w,y+h],[x+w,y+h],[x+w,y-h]].map(p=>new T.Vector2(...p)));hole.closePath();shape.holes.push(hole);const geo=new T.ExtrudeGeometry(shape,{depth:a.depth*2,steps:1,bevelEnabled:false});geo.translate(0,0,-a.depth);geo.computeBoundingSphere();const g=new T.Group();g.position.set(0,0,-a.z);const body=new T.Mesh(geo,material(a.world));body.userData.concave=true;body.castShadow=a.world==='sunscar';body.receiveShadow=true;g.add(body);
+  // Four short brackets identify the genuine opening without resembling a ring.
+  const corners=[];for(const sx of [-1,1])for(const sy of [-1,1]){const bx=x+sx*(w+.35),by=y+sy*(h+.35),z=a.depth+.08;corners.push(bx,by-sy*2,z,bx,by,z,bx,by,z,bx-sx*2,by,z);}const lineGeo=new T.BufferGeometry();lineGeo.setAttribute('position',new T.Float32BufferAttribute(corners,3));const marks=new T.LineSegments(lineGeo,new T.LineBasicMaterial({color:0xffd59b,toneMapped:false,fog:false}));marks.userData.ownedMaterial=true;g.add(marks);world.add(g);return {...a,g,shape:body,collisionShapes:[body],environment:'passage',baseX:0,baseY:0,baseZ:-a.z,name:STYLE[a.world].name};
+ }
+ return {create,materials};
+}

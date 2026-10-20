@@ -1,0 +1,7 @@
+export const MULTIPLIERS={easy:1,medium:1.5,hard:2};
+export function initRewards(run,mode='easy'){run.mode=mode;run.earnings={base:0,precision:0,combo:0,nearMiss:0};run.paidCredits=0;run.combo=0;run.maxCombo=0;run.nearMisses=0;run.points=0;return run;}
+// Cumulative rounding makes payout independent of event grouping. Only the delta is banked.
+export function award(save,run,kind,credits){if(!run.earnings)initRewards(run,run.mode);if(!Object.hasOwn(run.earnings,kind)||!Number.isFinite(credits)||credits<=0)return 0;run.earnings[kind]+=Math.floor(credits);const total=Object.values(run.earnings).reduce((a,b)=>a+b,0),earned=Math.floor(total*MULTIPLIERS[run.mode]),delta=Math.max(0,earned-run.paidCredits);save.credits+=delta;run.paidCredits=earned;run.points=earned;return delta;}
+export function rewardRing(save,run,type,perfect,basePoints){run.rings++;run.combo++;run.maxCombo=Math.max(run.maxCombo,run.combo);let paid=award(save,run,'base',basePoints);if(perfect)paid+=award(save,run,'precision',Math.floor(basePoints*.5));if(run.combo>1)paid+=award(save,run,'combo',Math.min(8,(run.combo-1)*2));return paid;}
+export function rewardNearMiss(save,run){run.nearMisses++;return award(save,run,'nearMiss',3);}
+export function rewardSummary(run){const e=run.earnings||{base:0,precision:0,combo:0,nearMiss:0},subtotal=Object.values(e).reduce((a,b)=>a+b,0);return {...e,subtotal,difficultyBonus:run.points-subtotal,total:run.points};}

@@ -1,0 +1,6 @@
+// Seeded course formations close permanent altitude/corner bypasses. They are
+// ordinary visible obstacles, never an AFK timer, invisible damage or a pursuer.
+import {flightDistance,flightTime} from './progression.mjs?v=49';
+export const PASSAGES={first:8,interval:10,halfX:16,halfY:7,halfDepth:3.5,warning:4.1};
+export function planPassages(index,seed,mode,world,route){const z0=index*190,a=flightTime(Math.max(0,z0-13),mode,world),b=flightTime(z0+190,mode,world),out=[];for(let n=Math.max(0,Math.ceil((a-PASSAGES.first)/PASSAGES.interval-1e-9));;n++){const sourceAt=PASSAGES.first+n*PASSAGES.interval;if(sourceAt>=b+1e-9)break;let z=flightDistance(sourceAt,mode,world);const row=Math.floor(z/190);for(const ringZ of [row*190,row*190+55,(row+1)*190])if(Math.abs(z-ringZ)<13)z=ringZ+13;if(z<z0-1e-6||z>=z0+190-1e-6)continue;const at=flightTime(z,mode,world),p=route(z,seed,mode,world);out.push({category:'passage',passageId:n,encounterAt:at,sourceAt,z,x:0,y:0,gapX:p.x,gapY:p.y,halfX:PASSAGES.halfX,halfY:PASSAGES.halfY,depth:PASSAGES.halfDepth,maxR:69,radius:1,amp:0,phase:(seed+n*137)%619,nearAwarded:true,world});}return out;}
+export function inPassageOpening(a,p,padX=0,padY=0){return Math.abs(p.x-a.gapX)+padX<a.halfX&&Math.abs(p.y-a.gapY)+padY<a.halfY;}

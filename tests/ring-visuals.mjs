@@ -1,0 +1,5 @@
+import assert from 'node:assert/strict';
+import * as T from '../public/three.module.js';
+import {createRingVisuals} from '../public/ring-visuals.mjs';
+import {RING_TYPES} from '../public/mechanics.mjs';
+const kit=createRingVisuals(),p=kit.dashGeometry.attributes.position;assert.equal(p.count,12*4*6,'twelve smooth arc dashes in one mesh');for(let i=0;i<p.count;i++){const radius=Math.hypot(p.getX(i),p.getY(i));assert.ok(radius>.9909&&radius<1.0111,'white detail remains inside original colored-ring contact radius');}assert.equal(kit.dashMaterial.toneMapped,false);assert.equal(kit.dashMaterial.fog,false);assert.ok(kit.dashMaterial.opacity>.9);for(let i=0;i<3;i++){const old={},now={};new T.Color(RING_TYPES[i].color).getHSL(old);new T.Color(kit.colors[i]).getHSL(now);assert.ok(Math.abs(old.h-now.h)<.04,'gold/cyan/coral identities remain recognizable');assert.ok(now.s>=old.s-.01);}console.log('PASS: cached twelve-dash mesh, preserved contact extent, stronger ring hues and lighting-independent visibility.');

@@ -1,0 +1,54 @@
+// Executes the actual scene, controls and game loop with a non-rendering canvas adapter.
+// This is an execution check, not a substitute for visual/device QA.
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+const nodes=new Map();
+class Classes{constructor(){this.s=new Set();}add(...x){x.forEach(v=>this.s.add(v));}remove(...x){x.forEach(v=>this.s.delete(v));}toggle(x,b){if(b??!this.s.has(x))this.s.add(x);else this.s.delete(x);}}
+class Node{constructor(id){this.id=id;this.classList=new Classes();this.style={setProperty(){}};this.dataset={};this.children=[];this.events={};this.tagName='DIV';this._html='';}set innerHTML(s){for(const id of this.ids||[])nodes.delete(id);this.ids=[...s.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);this._html=s;for(const m of s.matchAll(/id="([^"]+)"/g))nodes.set(m[1],new Node(m[1]));}get innerHTML(){return this._html;}append(x){this.children.push(x);}querySelector(s){return node(this.id+s);}addEventListener(e,cb){this.events[e]=cb;}setAttribute(){}setPointerCapture(){}click(){this.onclick?.();}getContext(){return {fillText(){},fillStyle:'',font:'',textAlign:'',fillRect(){},createRadialGradient(){return {addColorStop(){}};},createLinearGradient(){return {addColorStop(){}};},createImageData(w,h){return {data:new Uint8ClampedArray(w*h*4)};},putImageData(){}};}}
+function node(id){if(!nodes.has(id))nodes.set(id,new Node(id));return nodes.get(id);}
+const events={};globalThis.__SKYWARD_TEST__=true;globalThis.window=globalThis;globalThis.innerWidth=390;globalThis.innerHeight=844;globalThis.devicePixelRatio=2;globalThis.document={getElementById:node,createElement:()=>new Node('generated'),body:new Node('body'),querySelector:()=>node('wordmark'),addEventListener:(e,fn)=>events[e]=fn};globalThis.addEventListener=(e,fn)=>events[e]=fn;globalThis.requestAnimationFrame=fn=>{globalThis.nextFrame=fn;};const storage=new Map();globalThis.localStorage={getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)};
+let renders=0;globalThis.TestRenderer=class{setPixelRatio(){}setSize(){}render(scene,camera){renders++;assert.ok(scene.children.length>5);assert.ok(camera.position.toArray().every(Number.isFinite));}};
+const root=new URL('../public/',import.meta.url),source=(await fs.readFile(new URL('game.js',root),'utf8')).replace("'./controls.mjs?v=38'",JSON.stringify(new URL('controls.mjs',root).href)).replace("'./three.module.js'",JSON.stringify(new URL('three.module.js',root).href)).replace("'./traffic.mjs?v=23'",JSON.stringify(new URL('traffic.mjs',root).href)).replace("'./ring-visuals.mjs?v=23'",JSON.stringify(new URL('ring-visuals.mjs',root).href)).replace("'./mechanics.mjs?v=36'",JSON.stringify(new URL('mechanics.mjs',root).href)).replace("'./ship-models.mjs?v=29'",JSON.stringify(new URL('ship-models.mjs',root).href)).replace("'./asteroid-art.mjs?v=24'",JSON.stringify(new URL('asteroid-art.mjs',root).href)).replace("'./environments.mjs?v=36'",JSON.stringify(new URL('environments.mjs',root).href)).replace("'./world-art.mjs?v=27'",JSON.stringify(new URL('world-art.mjs',root).href)).replace("'./audio.mjs?v=36'",JSON.stringify(new URL('audio.mjs',root).href)).replace("'./rewards.mjs?v=23'",JSON.stringify(new URL('rewards.mjs',root).href)).replace(/'\.\/([^']+?)(?:\?v=\d+)?'/g,(_,name)=>JSON.stringify(new URL(name,root).href)).replace("new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'})",'new globalThis.TestRenderer()');
+const temp=new URL('./.controls-execution.mjs',import.meta.url);await fs.writeFile(temp,source+'\nglobalThis.testFlight={asteroidScenery,controls,evade,activateEvade,showControls,steeringDirection,clearInput,get state(){return state},get run(){return run},get save(){return save},get asteroids(){return asteroids},get rings(){return rings},world,surfaceClearance,asteroidMotion,ship,input,start,home,pause,shop,tick,animate,collides,prepareRun,get seed(){return seed},effects,finish,rockGeos,mat,skyDome,planetMaterial,buildShip,selectMode,selectWorld,get flightWorld(){return flightWorld},get flightMode(){return flightMode},themes};');
+try{
+ await import(temp.href+'?'+Date.now());const g=globalThis.testFlight;
+ const {touchSteering,Evade,CONTROL_TUNING,controlPreferences}=await import(new URL('controls.mjs',root));
+ assert.deepEqual(controlPreferences('invalid'),{side:'left',layout:'directional'});
+ assert.equal(touchSteering(1,1,390,844).x,0);
+ const fine=touchSteering(10,0,390,844),urgent=touchSteering(48,0,390,844);assert.ok(fine.x>0&&fine.x<.2);assert.equal(urgent.x,1.45);
+ const diagonal=touchSteering(48,48,390,844);assert.ok(Math.abs(Math.hypot(diagonal.x,diagonal.y)-urgent.x)<1e-9);
+ function clean(){g.start();g.asteroids.splice(0);g.rings.splice(0);}
+ for(const direction of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]]){
+  clean();Object.assign(g.input,{x:direction[0],y:direction[1]});assert.equal(g.activateEvade(),true);assert.equal(g.activateEvade(),false);
+  g.tick(.15);assert.ok(Math.abs(g.ship.quaternion.w)<.35,'mid-evade completes half a tumble');const mid=g.ship.position.clone();g.input.x=-direction[0];g.input.y=-direction[1];g.tick(.15);
+  const l=Math.hypot(...direction);assert.ok(Math.abs(g.ship.position.x-direction[0]/l*15)<.001);assert.ok(Math.abs(g.ship.position.y-direction[1]/l*15)<.001);assert.equal(g.evade.active,false);assert.ok(g.ship.position.distanceTo(mid)>7.4);
+  assert.ok(Math.abs(g.ship.rotation.x)<.3&&Math.abs(g.ship.rotation.z)<.6,'visual returns to normal bank');
+ }
+ clean();assert.equal(g.activateEvade(),false);assert.equal(g.evade.active,false);
+ g.ship.position.x=32;assert.equal(g.activateEvade({x:1,y:0}),false);assert.equal(g.evade.active,false);
+ assert.equal(g.activateEvade({x:-1,y:0}),true);g.tick(.1);const elapsed=g.evade.elapsed,position=g.ship.position.clone();g.pause();g.tick(2);assert.equal(g.evade.elapsed,elapsed);assert.equal(g.ship.position.distanceTo(position),0);node('resume').click();g.tick(.2);assert.equal(g.evade.active,false);assert.equal(g.activateEvade({x:1,y:0}),true,'next evade is immediately available');g.tick(.3);
+ clean();for(let i=0;i<30;i++){assert.equal(g.activateEvade({x:i%2?-1:1,y:0}),true,'unlimited consecutive evades');assert.equal(g.activateEvade({x:0,y:1}),false,'active rolls cannot stack');g.tick(.3);assert.equal(g.evade.active,false);}
+ for(const side of ['left','right'])for(const layout of ['directional','split']){
+  clean();g.controls.side=side;g.controls.layout=layout;const canvas=node('world'),x=side==='left'?80:310;
+  const e=(id,x,y,type='touch')=>({pointerId:id,clientX:x,clientY:y,pointerType:type,preventDefault(){},stopPropagation(){}});
+  canvas.events.pointerdown(e(1,x,500));canvas.events.pointermove(e(1,x+35,500));const before=g.input.x;assert.ok(before>.7);
+  const button=node(layout==='split'?'evadeLeft':'evade');button.events.pointerdown(e(2,200,700));assert.equal(g.input.x,before,'second thumb does not reset steering');assert.equal(g.evade.active,true);assert.equal(Math.sign(g.evade.x),layout==='split'?-1:1);
+  canvas.events.pointerup(e(2,200,700));assert.equal(g.input.x,before,'unrelated release leaves steering held');canvas.events.pointercancel(e(1,x,500));assert.equal(g.input.x,0);
+  g.pause();node('resume').click();canvas.events.pointerdown(e(3,side==='left'?310:80,500));canvas.events.pointermove(e(3,220,500));assert.equal(g.input.x,0,'wrong half cannot start steering');
+ }
+ clean();const canvas=node('world');canvas.events.pointerdown({pointerId:10,clientX:60,clientY:500,pointerType:'mouse',preventDefault(){}});canvas.events.pointermove({pointerId:10,clientX:118,clientY:500,preventDefault(){}});assert.equal(g.input.x,1);g.tick(.1);assert.ok(Math.abs(g.ship.position.x-2.7)<.001,'mouse speed retained');g.clearInput();
+ // Physical collision encountered between start and end must stop the evade.
+ const THREE=await import(new URL('three.module.js',root));clean();const shape=new THREE.Mesh(new THREE.BoxGeometry(.12,30,30),new THREE.MeshBasicMaterial());const group=new THREE.Group();group.add(shape);g.world.add(group);g.asteroids.push({g:group,shape,x:7,y:0,z:0,baseX:7,baseY:0,baseZ:0,maxR:22,depth:20,amp:0,rate:0,spin:0,phase:0});g.activateEvade({x:1,y:0});g.tick(.3);assert.equal(g.state,'crashing','evade cannot cross a thin obstacle');assert.ok(g.ship.position.x<7);
+ clean();g.activateEvade({x:1,y:1});g.tick(.12);const q=g.ship.quaternion.clone();const obstacle=g.asteroids; // collision samples stay independent of visual tumble
+ g.ship.rotation.set(0,0,0);const block=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial());block.position.copy(g.ship.position);block.position.x+=2.15;block.position.z+=.9;g.world.add(block);block.updateWorldMatrix(true,true);const a={shape:block};const normal=g.collides(a);g.ship.quaternion.copy(q);assert.equal(g.collides(a),normal);g.world.remove(block);
+ clean();g.activateEvade({x:1,y:0});g.tick(.1);g.start();assert.equal(g.evade.active,false);assert.equal(g.input.x,0);
+ g.home();g.showControls();node('steeringSide').value='right';node('evadeLayout').value='split';node('steeringSide').onchange();assert.deepEqual(JSON.parse(storage.get('stargaze-controls-v1')),{side:'right',layout:'split'});const savedProgress=storage.get('skyward-v1');node('resetControls').click();assert.deepEqual(JSON.parse(storage.get('stargaze-controls-v1')),{side:'left',layout:'directional'});assert.equal(storage.get('skyward-v1'),savedProgress);node('doneControls').click();
+ // Each existing world/difficulty and every ship uses the same evade implementation.
+ const {WORLDS,MODES,SHIPS}=await import(new URL('mechanics.mjs',root));
+ for(const world of WORLDS)for(const mode of MODES){g.home();g.selectWorld(world.id);g.selectMode(mode.id);g.start();assert.equal(g.activateEvade({x:0,y:1}),true);g.tick(.3);assert.equal(g.state,'playing');assert.ok(Math.abs(g.ship.position.y-15)<.001);}
+ for(const ship of SHIPS){g.home();g.save.ship=ship.id;g.buildShip();g.start();assert.equal(g.activateEvade({x:1,y:0}),true);g.tick(.3);assert.equal(g.state,'playing');assert.ok(Math.abs(g.ship.position.x-15)<.001);}
+ // Compare identical elapsed time at different simulation frame sizes.
+ const outcomes=[];for(const dt of [1/30,1/60,1/120]){clean();g.activateEvade({x:1,y:1});for(let t=0;t<.3-1e-8;t+=dt)g.tick(Math.min(dt,.3-t));outcomes.push(g.ship.position.clone());}assert.ok(outcomes.every(p=>p.distanceTo(outcomes[0])<1e-6));
+ console.log('PASS: progressive touch response, diagonal speed, eight locked evade directions, complete tumble, neutral/boundary taps, unlimited consecutive evades without stacking, pause, four mirrored layouts, independent pointers, cancellation, mouse speed, swept thin-obstacle contact, stable collision body, restart, saved preferences, progress isolation and frame independence.');
+}finally{await fs.unlink(temp);}

@@ -1,0 +1,51 @@
+{
+  "commit": "ec6af20dbde90aa182094a1fe9e64ef079955bac",
+  "seed": 113,
+  "seconds": 180,
+  "dt": 0.02,
+  "nearDistance": 200,
+  "report": [
+    {
+      "mode": "easy",
+      "nearAverage": 4.934124549939992,
+      "emptyPercent": 0.6934257901053474,
+      "peak": 10,
+      "stats": {
+        "spawned": 235,
+        "bumps": 109,
+        "crashes": 214,
+        "terrainCrashes": 80,
+        "passes": 62,
+        "rearWarnings": 66
+      }
+    },
+    {
+      "mode": "medium",
+      "nearAverage": 3.9133217762368315,
+      "emptyPercent": 1.09347913055074,
+      "peak": 11,
+      "stats": {
+        "spawned": 248,
+        "bumps": 108,
+        "crashes": 231,
+        "terrainCrashes": 104,
+        "passes": 70,
+        "rearWarnings": 72
+      }
+    },
+    {
+      "mode": "hard",
+      "nearAverage": 3.280170689425257,
+      "emptyPercent": 3.4537938391785574,
+      "peak": 8,
+      "stats": {
+        "spawned": 251,
+        "bumps": 80,
+        "crashes": 226,
+        "terrainCrashes": 126,
+        "passes": 84,
+        "rearWarnings": 69
+      }
+    }
+  ]
+}

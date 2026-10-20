@@ -1,0 +1,5 @@
+import fs from 'node:fs';
+import {pathToFileURL} from 'node:url';
+const root=new URL('../public/',import.meta.url);
+const {RaceField}=await import(new URL('sunscar-racing.mjs',root));const {routeAtTime,makeSector}=await import(new URL('mechanics.mjs',root));const {flightDistance,flightTime}=await import(new URL('progression.mjs',root));
+const report=[];for(const mode of ['easy','medium','hard']){const f=new RaceField(routeAtTime),obs=[];for(let i=0;i<180;i++)obs.push(...makeSector(i,flightTime(i*190,mode,'sunscar'),113,mode,'sunscar').asteroids);f.reset(113,mode);let samples=0,near=0,zero=0,peak=0;for(let t=.02;t<180;t+=.02){f.step(.02,t,flightDistance(t,mode,'sunscar'),obs);f.drainEvents();if(t>30){const n=f.racers.filter(a=>Math.abs(a.forward-f.distance)<200).length;near+=n;zero+=n===0;peak=Math.max(peak,n);samples++;}}report.push({mode,nearAverage:near/samples,emptyPercent:zero/samples*100,peak,stats:f.stats,safety:f.safety.stats});}fs.writeFileSync(new URL('./fixtures/sunscar-v42-result.json',import.meta.url),JSON.stringify({seed:113,seconds:180,dt:.02,nearDistance:200,report},null,2));console.log(JSON.stringify(report));
