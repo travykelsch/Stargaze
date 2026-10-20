@@ -29,7 +29,15 @@ motion.accept({...p,evadeSeq:-1},room,10020,0,{seq:1,x:1,y:0});assert.equal(moti
 motion.accept({...p,crashes:1,respawnAt:12,z:0,x:0},room,10030,0);assert.equal(motion.display().z,0);assert.equal(motion.display().x,0);
 const other=remotePose(p,.2,room);assert.ok(other.z>p.z);assert.equal(p.z,p.previousZ,'remote extrapolation never mutates server state');
 // Receiving repeated stale snapshots must not keep flying an invented course.
-{const stalled=new MultiplayerMotion(),base={...newPilot('stalled','owner',{},0),z:0};stalled.accept(base,room,0);let clock=0;for(let i=0;i<180;i++){const now=i*1000/60;if(i%6===0)stalled.accept(base,room,now,200);stalled.step({x:0,y:0},1/60,room,now);assert.ok(stalled.time>=clock-1e-8);clock=stalled.time;}assert.ok(stalled.display().z<25);}
+{const stalled=new MultiplayerMotion(),base={...newPilot('stalled','owner',{},0),z:0};stalled.accept(base,room,0);let clock=0,held;for(let i=0;i<180;i++){const now=i*1000/60;if(i%6===0)stalled.accept(base,room,now,200);stalled.step({x:0,y:0},1/60,room,now);assert.ok(stalled.time>=clock-1e-8);clock=stalled.time;if(i===120)held=stalled.display().z;}assert.ok(stalled.time<=1.5);assert.equal(stalled.display().z,held,'prediction stops during a real outage despite stale replies');}
+// Serialized mobile exchanges: 600ms gaps, asymmetric latency estimates, large
+// authoritative advances, and steering reversals must not teleport the scenery.
+{const m=new MultiplayerMotion(),pilot=newPilot('mobile','owner',{},0);m.accept(pilot,room,0);let previous=0,stops=0;
+ for(let i=1;i<=600;i++){const now=i*1000/60,t=now/1000,input={x:i%120<60?.6:-.6,y:0};movePilot(pilot,input,1/60,t,room);
+  if(i%36===0){const before=m.display().z;m.accept(pilot,{...room,time:t,simAt:now,serverNow:now},now,i%72===0?600:90);assert.equal(m.display().z,before,'packet receipt preserves forward pose');}
+  m.step(input,1/60,room,now);const z=m.display().z,delta=z-previous;if(i>60&&delta<.001)stops++;assert.ok(delta>=-1e-8&&delta<2,'frame travel stays bounded through 600ms update gaps');previous=z;
+ }
+ assert.equal(stops,0);assert.ok(Number.isFinite(m.display().x));}
 // A normal one-second delivery gap can now catch up in one bounded update.
 const r=newRoom('ABCDEF','owner','one',{world:'easy',mode:'collector'},0);r.players.push(newPilot('two','second',{},0));r.phase='playing';r.startAt=0;r.simAt=0;
 advance(r,1000,{engine:{nearby:()=>({rings:[],obstacles:[]}),collision:()=>null}});assert.ok(r.time>=.98);assert.ok(r.players.every(p=>p.z>0));
