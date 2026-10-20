@@ -15,6 +15,13 @@
       "when": 1792469855279,
       "tag": "0001_warm_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792504291895,
+      "tag": "0002_fuzzy_captain_cross",
+      "breakpoints": true
     }
   ]
 }

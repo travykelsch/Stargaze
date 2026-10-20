@@ -4,20 +4,17 @@ An endless survival flying game with six worlds, twenty ships, and online multip
 
 **Play:** https://skyward-flight.calmhippo4.chatgpt.site
 
-## Source snapshot
+**Pilot accounts and leaderboard:** https://skyward-flight.calmhippo4.chatgpt.site/account.html
 
-Imported from the deployed Sites source commit `155a1a89297c5a9c040fc4a06011dd7810d722d8` on October 20, 2026. This repository contains the frontend, artwork, authoritative multiplayer server, database schema and migrations, build configuration, and tests. It does not contain live database records, browser saves, credentials, or personal accounts.
+## Accounts and statistics
 
-## Project structure
+Players sign in with ChatGPT, choose a unique callsign, and decide whether to appear in public rankings. Personal bests and solo/multiplayer statistics persist in D1 across signed-in devices. Emails and private account IDs are never shown on the leaderboard. Guest play remains available.
 
-- `public/`: Three.js game, worlds, controls, ship models, UI, and artwork.
-- `server/`: authoritative multiplayer simulation, collision geometry, and room API.
-- `app/api/multiplayer/route.ts`: Worker API route.
-- `db/` and `drizzle/`: D1 schema and migrations.
-- `tests/`: gameplay, multiplayer, API, and runtime checks.
-- `docs/`: design and implementation notes.
+Rankings use server-verified multiplayer wins, with world, difficulty and mode filters. Two distinct signed-in accounts and at least ten seconds of authoritative play are required for ranked eligibility. Equal wins share a rank; draws are recorded separately. Solo records are client-reported and remain separate from verified rankings. Existing guest best records can be imported explicitly once. Local spendable credits, selected ship, audio and controls stay on each device. See `docs/accounts-v50.md` for the complete account flow and validation limits.
 
-## Development
+## Source and development
+
+The original deployed source snapshot was imported from Sites commit `155a1a89297c5a9c040fc4a06011dd7810d722d8` on October 20, 2026. This repository includes frontend code, artwork, the authoritative multiplayer server, schema/migrations, configuration, tests and implementation notes. It does not contain live user records, browser saves, or credentials.
 
 Requires Node.js 22.13 or newer and pnpm as pinned in `package.json`.
 
@@ -26,11 +23,12 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Build with `pnpm build`. The project uses Vinext, Vite, Cloudflare Workers, and a D1 binding named `DB`. The existing configuration includes Sites-specific hosting integration.
-
-Core multiplayer checks:
+Build with `pnpm build`. The app uses Vinext, Vite, Cloudflare Workers and a D1 binding named `DB`. Source is organized under `public/`, `server/`, `app/api/`, `db/`, `drizzle/`, `tests/`, and `docs/`.
 
 ```sh
+node tests/accounts.mjs
+node tests/accounts-client.mjs
+node tests/accounts-page.mjs
 node tests/multiplayer.mjs
 node tests/multiplayer-api.mjs
 node tests/multiplayer-ui.mjs
@@ -38,24 +36,15 @@ node tests/multiplayer-ui.mjs
 
 ## Hosting
 
-The existing public game remains hosted through Sites. Uploading this source to GitHub does not migrate its hosting or live database.
+The public game remains hosted through Sites. GitHub stores source; uploading source does not migrate hosting or the live database. Independent hosting needs a compatible Worker deployment, D1 provisioning and the included migrations, adaptation of Sites-specific configuration, and an equivalent trusted identity provider. GitHub Pages alone cannot run the multiplayer backend. Do not deploy using the local configuration's placeholder D1 ID.
 
-Independent hosting requires a compatible Worker deployment, a D1 database bound as `DB`, application of the included migrations, and adaptation of the Sites-specific deployment configuration. GitHub Pages alone cannot run the multiplayer server. Do not deploy using the placeholder D1 database ID in the local configuration.
+## Multiplayer
 
-## Multiplayer rules
-
-- **Race to the Finish:** a course approximately 120 seconds at baseline speed; checkpoints, two-second crash respawns, race-only boost and shield rings.
-- **Timed Ring Collector:** 120 seconds; scoring rings worth 1, 3, or 5 points; two-second respawns retain points.
+- **Race:** a course approximately 120 seconds at baseline speed, checkpoints, two-second crash respawns and race-only boost/shield rings.
+- **Collector:** 120 seconds; 1/3/5-point rings; two-second respawns retain points.
 - **Last Pilot Standing:** one life, no respawns; survival determines the winner.
-- Every pilot has an independent collectible copy of every ring.
-- Moving rings begin after 60 seconds; red rings remain unavailable before 90 seconds.
-- Human ships are nonblocking.
-- Backgrounded or disconnected players forfeit after 12 seconds without contact.
+- Rings have independent collectible copies per pilot. Moving rings begin after 60 seconds; red rings remain absent before 90 seconds. Human ships are nonblocking. A connection lost for 12 seconds forfeits the round.
 
-## Accounts and saves
+## Verification limits
 
-There is no permanent individual account registration or cross-device save synchronization yet. Single-player progress lives in each browser. Multiplayer uses session identities and a separate server-side reward ledger.
-
-## Validation limits
-
-Automated logic, API, and UI-harness checks were performed, along with four independent clients connected to the deployed service. Actual phone rendering, touch feel, audio, and device FPS have not been verified. Hosted tests showed occasional multi-second response latency; further responsiveness tuning and real-device playtesting remain necessary.
+Logic, API and non-rendering UI harnesses verify behavior. Four independent clients were previously tested against the hosted multiplayer service. Actual phone rendering, touch feel, audio and FPS have not been measured. Hosted network tests showed occasional multi-second latency spikes. Native browser sign-in handoff requires a real user check; fixtures do not prove browser authentication.
