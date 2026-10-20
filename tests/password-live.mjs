@@ -1,0 +1,23 @@
+// Live public-service smoke test. Test credentials/cookies/codes are random,
+// memory-only and never logged. Private QA profiles remain out of rankings.
+import assert from 'node:assert/strict';
+import {randomBytes} from 'node:crypto';
+const origin='https://skyward-flight.calmhippo4.chatgpt.site',names=Array.from({length:2},()=> 'QA_'+randomBytes(6).toString('hex')),passwords=Array.from({length:2},()=>randomBytes(24).toString('base64url')),cookies=['',''],sessions=Array.from({length:4},()=>randomBytes(32).toString('hex')),timings=[];let code='';
+async function request(i,path,body=null,override=null){const start=performance.now();const r=await fetch(origin+path,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json',Origin:origin}:{}),Cookie:override??cookies[i]??''},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(25000)});timings.push(performance.now()-start);const set=r.headers.get('set-cookie');const sessionCookie=set?.match(/(?:^|,)\s*(__Host-stargaze_session=[^;,\s]+)/)?.[1];if(sessionCookie&&override===null&&i<2)cookies[i]=sessionCookie;return {status:r.status,attributes:set,...await r.json()};}
+const auth=(i,body)=>request(i,'/api/auth',body),me=i=>request(i,'/api/accounts');
+try{
+ const a=await auth(0,{action:'signup',username:names[0],password:passwords[0],listed:false});assert.equal(a.status,201);assert.ok(/HttpOnly/.test(a.attributes),'HttpOnly cookie required');assert.ok(/Secure/.test(a.attributes),'Secure cookie required');assert.ok(a.recoveryCode);
+ const b=await auth(1,{action:'signup',username:names[1],password:passwords[1],listed:false});assert.equal(b.status,201);
+ const first=await me(0);assert.equal(first.authenticated,true);assert.equal(first.profile.listed,false);const id=first.profile.id;assert.notEqual((await me(1)).profile.id,id);
+ const save=await request(0,'/api/accounts',{action:'solo',profile:id,id:crypto.randomUUID(),world:'easy',difficulty:'easy',ship:'comet',duration:1,distance:10,rings:0,credits:0,combo:0,nearMisses:0});assert.equal(save.status,200);assert.equal((await me(0)).stats.solo.flights,1);
+ const oldCookie=cookies[0];await auth(0,{action:'logout'});assert.equal((await me(0)).authenticated,false);assert.equal((await request(0,'/api/accounts',null,oldCookie)).authenticated,false);
+ assert.equal((await auth(0,{action:'login',username:names[0].toLowerCase(),password:passwords[0]})).status,200);assert.equal((await me(0)).profile.id,id);const preResetCookie=cookies[0],replacement=randomBytes(24).toString('base64url');
+ const reset=await auth(0,{action:'recover',username:names[0],password:replacement,recoveryCode:a.recoveryCode});assert.equal(reset.status,200);assert.ok(reset.recoveryCode!==a.recoveryCode,'recovery code must rotate');assert.equal((await request(0,'/api/accounts',null,preResetCookie)).authenticated,false);assert.equal((await me(0)).profile.id,id);assert.equal((await me(0)).stats.solo.flights,1);
+ assert.equal((await auth(0,{action:'recover',username:names[0],password:passwords[0],recoveryCode:a.recoveryCode})).status,401);
+ const mp=async(i,action,extra={})=>request(i,'/api/multiplayer',{session:sessions[i],code,action,...extra});
+ let room=await mp(0,'create',{world:'sunscar',name:'Untrusted alias'});assert.equal(room.status,200);code=room.room.code;assert.equal(room.room.players[0].name,names[0]);for(let i=1;i<4;i++)assert.equal((await mp(i,'join',{name:'Guest QA'})).status,200);room=await mp(0,'state');assert.equal(room.room.players.length,4);assert.ok(room.room.players.every(p=>!('accountUser'in p)&&!('account'in p)));
+ const wrong=await request(1,'/api/multiplayer',{session:sessions[0],code,action:'state'});assert.equal(wrong.status,401);
+ for(let i=0;i<4;i++)await mp(i,'leave');code='';
+ const page=await fetch(origin+'/account',{signal:AbortSignal.timeout(20000)});assert.equal(page.status,200);assert.ok((await page.text()).includes('account-page.mjs?v=51'));
+ console.log(JSON.stringify({pass:true,realService:true,emailRequired:false,signup:true,httpOnlyCookiePersisted:true,isolatedProfiles:true,cloudStatsAcrossLogin:true,logoutRevoked:true,passwordRecovery:true,oldRecoveryRejected:true,oldSessionsRevoked:true,fourClientRoom:true,accountMembershipChecked:true,qaProfilesPrivate:true,requests:timings.length,p50ms:Math.round([...timings].sort((a,b)=>a-b)[Math.floor(timings.length*.5)]),p95ms:Math.round([...timings].sort((a,b)=>a-b)[Math.floor(timings.length*.95)])}));
+}finally{if(code)for(let i=0;i<4;i++)try{await request(i,'/api/multiplayer',{session:sessions[i],code,action:'leave'});}catch{}for(let i=0;i<2;i++)if(cookies[i])try{await auth(i,{action:'logout'});}catch{}}

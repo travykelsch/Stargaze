@@ -8,9 +8,9 @@ An endless survival flying game with six worlds, twenty ships, and online multip
 
 ## Accounts and statistics
 
-Players sign in with ChatGPT, choose a unique callsign, and decide whether to appear in public rankings. Personal bests and solo/multiplayer statistics persist in D1 across signed-in devices. Emails and private account IDs are never shown on the leaderboard. Guest play remains available.
+Players register with a username and password—no email or ChatGPT account required—and choose whether to appear in public rankings. A one-time recovery code supports password reset without email. Secure HttpOnly sessions last up to 30 days. Existing native-sign-in pilots can add a username/password while preserving their stats. Personal bests and solo/multiplayer statistics persist in D1 across signed-in devices. Emails and private account IDs are never shown on the leaderboard. Guest play remains available.
 
-Rankings use server-verified multiplayer wins, with world, difficulty and mode filters. Two distinct signed-in accounts and at least ten seconds of authoritative play are required for ranked eligibility. Equal wins share a rank; draws are recorded separately. Solo records are client-reported and remain separate from verified rankings. Existing guest best records can be imported explicitly once. Local spendable credits, selected ship, audio and controls stay on each device. See `docs/accounts-v50.md` for the complete account flow and validation limits.
+Rankings use server-verified multiplayer wins, with world, difficulty and mode filters. Two distinct signed-in accounts and at least ten seconds of authoritative play are required for ranked eligibility. Equal wins share a rank; draws are recorded separately. Solo records are client-reported and remain separate from verified rankings. Existing guest best records can be imported explicitly once. Local spendable credits, selected ship, audio and controls stay on each device. See `docs/accounts-v51.md` for the current account flow, security and phone verification limits, and `docs/accounts-v50.md` for initial stats/ranking rules.
 
 ## Source and development
 
@@ -26,6 +26,8 @@ pnpm dev
 Build with `pnpm build`. The app uses Vinext, Vite, Cloudflare Workers and a D1 binding named `DB`. Source is organized under `public/`, `server/`, `app/api/`, `db/`, `drizzle/`, `tests/`, and `docs/`.
 
 ```sh
+node tests/password-auth.mjs
+node tests/password-worker.mjs
 node tests/accounts.mjs
 node tests/accounts-client.mjs
 node tests/accounts-page.mjs
@@ -36,7 +38,7 @@ node tests/multiplayer-ui.mjs
 
 ## Hosting
 
-The public game remains hosted through Sites. GitHub stores source; uploading source does not migrate hosting or the live database. Independent hosting needs a compatible Worker deployment, D1 provisioning and the included migrations, adaptation of Sites-specific configuration, and an equivalent trusted identity provider. GitHub Pages alone cannot run the multiplayer backend. Do not deploy using the local configuration's placeholder D1 ID.
+The public game remains hosted through Sites. GitHub stores source; uploading source does not migrate hosting or the live database. Independent hosting needs a compatible Worker deployment, D1 provisioning and the included migrations, adaptation of Sites-specific configuration, and support for the included username/password session backend (or an equivalent trusted identity provider). GitHub Pages alone cannot run the multiplayer backend. Do not deploy using the local configuration's placeholder D1 ID.
 
 ## Multiplayer
 
@@ -47,4 +49,4 @@ The public game remains hosted through Sites. GitHub stores source; uploading so
 
 ## Verification limits
 
-Logic, API and non-rendering UI harnesses verify behavior. Four independent clients were previously tested against the hosted multiplayer service. Actual phone rendering, touch feel, audio and FPS have not been measured. Hosted network tests showed occasional multi-second latency spikes. Native browser sign-in handoff requires a real user check; fixtures do not prove browser authentication.
+Logic, API and non-rendering UI harnesses verify behavior. Four independent clients were previously tested against the hosted multiplayer service. Actual phone rendering, touch feel, audio and FPS have not been measured. Hosted network tests showed occasional multi-second latency spikes. Phone rendering and touch feel still require hands-on device checks; server and DOM fixtures do not prove visual layout.

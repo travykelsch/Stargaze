@@ -1,10 +1,11 @@
+import {resolveIdentity} from './password-auth.mjs';
 // Sites dispatch supplies verified identity. Never accept an account ID from a body.
 import {WORLDS,MODES,SHIPS,loadSave} from '../public/mechanics.mjs';
 import {flightDistance} from '../public/progression.mjs';
 const worlds=WORLDS.map(w=>w.id),difficulties=MODES.map(m=>m.id);
 const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'private, no-store','Vary':'Cookie','X-Content-Type-Options':'nosniff'}});
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
-export function identity(request){const id=request.headers.get('oai-authenticated-user-id'),email=request.headers.get('oai-authenticated-user-email');return id&&email?id:null;}
+export async function identity(request,db){return resolveIdentity(request,db);}
 const publicProfile=p=>p?{id:p.public_id,name:p.name,listed:!!p.listed}:null;
 export async function accountProfile(db,id){return id?db.prepare('SELECT public_id,name,listed FROM player_profiles WHERE user_id=?').bind(id).first():null;}
 export function normalizeRecords(raw){const s=loadSave(JSON.stringify(raw||{})),records={};for(const w of worlds)for(const d of difficulties){const b=s.worldBests[w+':'+d];records[w+':'+d]={distance:Math.min(1e9,b.distance),score:Math.min(1e9,b.score)};}return records;}
@@ -39,11 +40,11 @@ export async function recordMatch(db,room){
 }
 export async function accounts(request,db){try{
  if(!db)return json({error:'Account storage unavailable'},503);db=db.withSession?db.withSession('first-primary'):db;
- const id=identity(request),url=new URL(request.url);
+ const id=await identity(request,db),url=new URL(request.url);
  if(request.method==='GET'){
   if(url.searchParams.get('view')==='leaderboard')return json(await board(db,id,url));
   if(!id)return json({authenticated:false,profile:null});
-  const p=await accountProfile(db,id);return json({authenticated:true,profile:publicProfile(p),stats:p?await stats(db,id):null});
+  const p=await accountProfile(db,id),login=await db.prepare('SELECT username FROM player_credentials WHERE user_id=?').bind(id).first();return json({authenticated:true,profile:publicProfile(p),login:login||{username:null},stats:p?await stats(db,id):null});
  }
  if(request.method!=='POST')return json({error:'Method not allowed'},405);
  if(!id)fail('Sign in to save your pilot profile',401);

@@ -22,6 +22,13 @@
       "when": 1792504291895,
       "tag": "0002_fuzzy_captain_cross",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1792506362976,
+      "tag": "0003_short_moondragon",
+      "breakpoints": true
     }
   ]
 }

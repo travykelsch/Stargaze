@@ -28,7 +28,7 @@ export async function multiplayer(request,db){try{
  const raw=await request.text();if(raw.length>4096)fail('Message too large',413);let b;try{b=JSON.parse(raw);}catch{fail('Invalid JSON');}
  if(!b||Array.isArray(b)||typeof b!=='object')fail('Invalid message');
  if(typeof b.session!=='string'||!/^[a-f0-9]{64}$/.test(b.session))fail('A valid pilot session is required',401);
- const owner=await hash(b.session),id=owner.slice(0,16),accountUser=identity(request),account=accountUser||owner,now=Date.now();
+ const owner=await hash(b.session),id=owner.slice(0,16),accountUser=await identity(request,db),account=accountUser||owner,now=Date.now();
  if(!db)return json({error:'Multiplayer storage unavailable'},503);db=db.withSession?db.withSession('first-primary'):db;
  if(b.action==='create'){
   const limit=await db.prepare('SELECT created, count FROM multiplayer_limits WHERE owner = ?').bind(account).first();if(limit&&now-limit.created<60000&&limit.count>=5)fail('Please wait before creating another room',429);

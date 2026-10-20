@@ -1,5 +1,6 @@
-export async function accountRequest(body=null,query=''){
- const r=await fetch('/api/accounts'+query,{method:body?'POST':'GET',credentials:'same-origin',cache:'no-store',headers:body?{'Content-Type':'application/json'}:{},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(7000)});
+export const authRequest=body=>accountRequest(body,'','/api/auth');
+export async function accountRequest(body=null,query='',path='/api/accounts'){
+ const r=await fetch(path+query,{method:body?'POST':'GET',credentials:'same-origin',cache:'no-store',headers:body?{'Content-Type':'application/json'}:{},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(path==='/api/auth'?20000:7000)});
  let data;try{data=await r.json();}catch{throw new Error('Accounts are unavailable. Please retry.');}if(!r.ok)throw Object.assign(new Error(data.error||'Unable to reach your account'),{status:r.status});return data;
 }
 export function mergeRecords(a={},b={}){const out=structuredClone(a);for(const [key,r]of Object.entries(b)){out[key]={distance:Math.max(out[key]?.distance||0,r.distance||0),score:Math.max(out[key]?.score||0,r.score||0)};}return out;}
