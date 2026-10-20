@@ -53,3 +53,23 @@ additional server optimization; it must not be described as proof of smooth play
 Production checks after deployment are reported separately. D1-backed exchanges
 remain a latency limit, especially on impaired connections. Actual iPhone visual
 and touch testing is unavailable in this environment.
+
+## Public-service follow-up
+
+After publishing both client and server changes, the actual game adapter connected
+to the public service in a solo Sunscar collector room with three bots. The first
+12-second run recorded 702 active samples, zero stationary frames, zero forward
+jumps, and no invalid coordinates. The scripted human had zero crashes; bots had
+one crash each. This did not rasterize the scene.
+
+A further 45-second run recorded 2,648 active samples, zero forward jumps and
+zero invalid coordinates. The scripted human had zero crashes; two bots crashed
+once each. There were still 20 stationary frames when the bounded prediction
+horizon was exhausted. The longest observed gap between progressing snapshots
+was 857ms. This is a material remaining latency limitation, not a flawless-play
+claim. Networking and actual phone GPU/touch performance remain separate checks.
+
+An isolated local 30-second physics comparison with the same seed and controls
+took 5,858ms using the previous triangle query and 4,592ms using the cache, with
+identical crash counts [0,0,1,0]. Both used the deduplicated encounter planner.
+These are local CPU timings, not service latency or device FPS measurements.
