@@ -1,5 +1,5 @@
 import {installAccounts,mergeRecords} from './accounts-client.mjs?v=51';
-import {installMultiplayer} from './multiplayer.mjs?v=55';
+import {installMultiplayer} from './multiplayer.mjs?v=57';
 import {obstacleMotion as sharedObstacleMotion} from './obstacle-motion.mjs?v=55';
 import {sunscarLighting} from './sunscar-lighting.mjs?v=49';
 import {sectionAt,tunnelBlend} from './sunscar-course.mjs?v=49';
